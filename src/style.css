@@ -444,3 +444,41 @@ button { font: inherit; cursor: pointer; }
 .lesson-content > .history-panel + .secondary-button {
   margin-top: 20px;
 }
+
+/* 第八节：放大单图、算法控制台与代码对照。 */
+.ff-content { width: min(100%, 1160px); }
+.ff-workspace { grid-template-columns: minmax(0, 1fr) 310px; }
+.ff-graph { padding: 12px 8px; }
+.ff-graph-header {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; padding: 8px 16px;
+}
+.ff-graph-header .secondary-button { padding: 9px 14px; }
+.ff-legend { color: #94a3b8; font-size: 13px; padding: 0 16px; line-height: 1.7; }
+.ff-console label { display: block; margin: 14px 0 8px; color: #cbd5e1; }
+.ff-console select {
+  width: 100%; padding: 12px; border-radius: 10px;
+  border: 1px solid #475569; background: #0f172a; color: #f8fafc;
+  font: inherit;
+}
+.ff-metric strong { font-size: 32px; color: #7dd3fc; }
+.ff-console-buttons { display: grid; gap: 10px; margin-top: 18px; }
+.ff-console-buttons button { width: 100%; }
+.ff-code-map {
+  margin: 20px 0 12px; padding: 12px 16px;
+  background: #142235; border-radius: 10px; color: #7dd3fc;
+}
+.ff-code {
+  overflow: auto; max-height: 640px; padding: 22px;
+  border-radius: 12px; border: 1px solid #334155;
+  background: #09111e; color: #e2e8f0;
+  font-size: 14px; line-height: 1.6; tab-size: 2;
+}
+.ff-code-tip { color: #94a3b8; line-height: 1.7; }
+#ff-code-section .lesson-actions { margin-top: 20px; }
+#ff-code-section button[aria-pressed="true"] {
+  border-color: #38bdf8; color: #7dd3fc;
+}
+@media (max-width: 850px) {
+  .ff-workspace { grid-template-columns: 1fr; }
+}
