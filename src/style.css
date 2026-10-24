@@ -371,3 +371,10 @@ button { font: inherit; cursor: pointer; }
     grid-template-columns: 1fr;
   }
 }
+
+/* 提示文字和操作按钮保持统一的呼吸空间，包括第五节的次要按钮。 */
+.greedy-prompt > p + button,
+.greedy-prompt > p + .secondary-button {
+  display: inline-block;
+  margin-top: 18px;
+}
