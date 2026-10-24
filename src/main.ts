@@ -49,6 +49,7 @@ function showCapacityLesson() {
         <div class="lesson-actions">
           <button id="send-button" class="primary-button">发送 1 单位流量 →</button>
           <button id="reset-button" class="secondary-button">重置</button>
+          <button id="next-button" class="secondary-button">下一节：流量守恒 →</button>
         </div>
         <p id="feedback" class="feedback" aria-live="polite">当前流量为 0。你觉得最多可以发送多少？</p>
       </div>
@@ -80,6 +81,38 @@ function showCapacityLesson() {
     });
   document.querySelector<HTMLButtonElement>('#back-button')!
     .addEventListener('click', showWelcome);
+  document.querySelector<HTMLButtonElement>('#next-button')!
+    .addEventListener('click', showConservationIntro);
+}
+
+function showConservationIntro() {
+  app.innerHTML = `
+    <main class="screen lesson">
+      <div class="lesson-content">
+        <button id="back-button" class="text-button">← 返回上一节</button>
+        <div class="lesson-meta">第一章 · 什么是最大流？ / 02</div>
+        <h1>流量进入一个节点后，会发生什么？</h1>
+        <p class="question">如果有 3 单位流量进入一个中间节点，它可以向外发送 5 单位流量吗？</p>
+        <div class="graph-panel">
+          <svg class="flow-graph" viewBox="0 0 600 230" role="img" aria-label="从 S 经中间节点 A 到 T 的网络">
+            <line x1="145" y1="115" x2="280" y2="115" stroke="#38bdf8" stroke-width="8" stroke-linecap="round" />
+            <line x1="320" y1="115" x2="455" y2="115" stroke="#64748b" stroke-width="8" stroke-linecap="round" />
+            <circle cx="120" cy="115" r="34" fill="#1e293b" stroke="#38bdf8" stroke-width="2" />
+            <circle cx="300" cy="115" r="34" fill="#1e293b" stroke="#38bdf8" stroke-width="2" />
+            <circle cx="480" cy="115" r="34" fill="#1e293b" stroke="#38bdf8" stroke-width="2" />
+            <text x="120" y="122" text-anchor="middle" class="node-label">S</text>
+            <text x="300" y="122" text-anchor="middle" class="node-label">A</text>
+            <text x="480" y="122" text-anchor="middle" class="node-label">T</text>
+            <text x="210" y="86" text-anchor="middle" class="edge-label">进入 3</text>
+            <text x="390" y="86" text-anchor="middle" class="edge-label">流出 ?</text>
+          </svg>
+        </div>
+        <p class="feedback">下一步我们将让你亲自分配流量，探索中间节点的流量守恒规则。</p>
+      </div>
+    </main>
+  `;
+  document.querySelector<HTMLButtonElement>('#back-button')!
+    .addEventListener('click', showCapacityLesson);
 }
 
 showWelcome();
