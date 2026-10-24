@@ -55,6 +55,11 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
 
 <div class="ticks"></div>
 <section id="spacer"></section>
+<main>
+  <h1>Flow Lab</h1>
+  <p>从零推导网络流算法</p>
+  <button>开始探索</button>
+</main>
 `
 
 setupCounter(document.querySelector<HTMLButtonElement>('#counter')!)
