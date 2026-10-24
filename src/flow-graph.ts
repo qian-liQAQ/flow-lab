@@ -28,10 +28,12 @@ export class FlowGraph {
   private selected: FlowSelection = null;
   private svg: SVGSVGElement;
   private onSelect?: (selection: FlowSelection) => void;
+  private onHover?: (selection: FlowSelection) => void;
 
-  constructor(svg: SVGSVGElement, onSelect?: (selection: FlowSelection) => void) {
+  constructor(svg: SVGSVGElement, onSelect?: (selection: FlowSelection) => void, onHover?: (selection: FlowSelection) => void) {
     this.svg = svg;
     this.onSelect = onSelect;
+    this.onHover = onHover;
   }
 
   setEdges(edges: FlowEdge[]) {
@@ -74,6 +76,8 @@ export class FlowGraph {
       group.append(make('line', { x1: String(sx), y1: String(sy), x2: String(ex), y2: String(ey), stroke: 'transparent', 'stroke-width': '24' }));
       group.append(make('line', { x1: String(sx), y1: String(sy), x2: String(ex), y2: String(ey), stroke: active ? '#fbbf24' : '#64748b', 'stroke-width': active ? '5' : '3', 'marker-end': 'url(#flowgraph-arrow)', 'pointer-events': 'none' }));
       group.append(make('text', { x: String(mx), y: String(my), 'text-anchor': 'middle', class: 'edge-label', 'pointer-events': 'none' }, `${e.flow} / ${e.cap}`));
+      group.addEventListener('mouseenter', () => this.onHover?.({ type: 'edge', index: i }));
+      group.addEventListener('mouseleave', () => this.onHover?.(null));
       group.addEventListener('click', () => this.select({ type: 'edge', index: i }));
       group.addEventListener('keydown', event => {
         if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); this.select({ type: 'edge', index: i }); }
@@ -85,6 +89,8 @@ export class FlowGraph {
       const group = make('g', { class: 'flowgraph-interactive', role: 'button', tabindex: '0', 'aria-label': `查看节点 ${id}` });
       group.append(make('circle', { cx: String(x), cy: String(y), r: '27', fill: active ? '#334155' : '#1e293b', stroke: active ? '#fbbf24' : '#38bdf8', 'stroke-width': active ? '4' : '2' }));
       group.append(make('text', { x: String(x), y: String(y + 8), 'text-anchor': 'middle', class: 'node-label', 'pointer-events': 'none' }, id));
+      group.addEventListener('mouseenter', () => this.onHover?.({ type: 'node', id }));
+      group.addEventListener('mouseleave', () => this.onHover?.(null));
       group.addEventListener('click', () => this.select({ type: 'node', id }));
       group.addEventListener('keydown', event => {
         if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); this.select({ type: 'node', id }); }
