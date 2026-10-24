@@ -291,6 +291,7 @@ export function showFordFulkersonLesson(app: HTMLDivElement, back: () => void) {
       defs.append(marker);
     }
     svg.append(defs);
+    const step = searching && traceIndex >= 0 ? trace[traceIndex] : null;
     for (const edge of arcs()) {
       const [x1, y1] = positions[edge.from], [x2, y2] = positions[edge.to];
       const dx = x2 - x1, dy = y2 - y1, len = Math.hypot(dx, dy);
@@ -300,6 +301,7 @@ export function showFordFulkersonLesson(app: HTMLDivElement, back: () => void) {
       const bend = 17;
       const cx = (sx + ex) / 2 - uy * bend, cy = (sy + ey) / 2 + ux * bend;
       const active = pending?.some(p => p.index === edge.index && p.reverse === edge.reverse) ?? false;
+      const exploring = step?.explored?.index === edge.index && step.explored.reverse === edge.reverse;
       const path = svgEl('path', {
         d: `M ${sx} ${sy} Q ${cx} ${cy} ${ex} ${ey}`,
         fill: 'none', stroke: active ? '#f8fafc' : exploring ? '#fb923c' : edge.reverse ? '#fbbf24' : '#38bdf8',
