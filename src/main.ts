@@ -595,6 +595,7 @@ function showReverseLesson() {
         <button id="reverse-undo" class="secondary-button">撤销选边</button>
         <button id="reverse-clear" class="secondary-button">清空路径</button>
         <button id="reverse-reset" class="secondary-button">重置阻塞案例</button>
+        <button id="reverse-next" class="secondary-button">下一节：残量容量实验 →</button>
       </div>
       <section class="history-panel"><h2>探索记录</h2><ol id="reverse-history" aria-live="polite"></ol></section>
       <div id="reverse-summary" class="discovery" hidden>
@@ -761,8 +762,123 @@ function showReverseLesson() {
     message.textContent = '已恢复流量 7 的阻塞案例。试着找到无需全部重来的调整方式。';
     render();
   });
+  get<HTMLButtonElement>('reverse-next').addEventListener('click', showResidualSingleLesson);
   get<HTMLButtonElement>('back-button').addEventListener('click', showGreedyPreview);
   render();
+}
+
+/** 第六节：用一条边观察 c-f 和 f，避免一次引入完整残量网络。 */
+function showResidualSingleLesson() {
+  const capacity = 5;
+  let flow = 3;
+  const visited = new Set<string>();
+  let revealed = false;
+
+  app.innerHTML = `
+    <main class="screen lesson"><div class="lesson-content">
+      <button id="back-button" class="text-button">← 返回第五节</button>
+      <div class="lesson-meta">第二章 · 残量网络 / 06</div>
+      <h1>一条边，为什么会出现两个方向？</h1>
+      <p class="question">原图中只有 A → B 一条边，容量为 5。改变它的当前流量，观察两个方向分别还允许做什么。</p>
+      <div class="graph-workspace residual-single-workspace">
+        <div class="graph-panel residual-single-panel">
+          <h2>原始网络</h2>
+          <svg viewBox="0 0 420 210" class="flow-graph" role="img" aria-label="原始边 A 到 B，容量为 5">
+            <defs><marker id="single-forward-arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#38bdf8"/></marker></defs>
+            <path d="M 106 105 L 310 105" fill="none" stroke="#38bdf8" stroke-width="4" marker-end="url(#single-forward-arrow)"/>
+            <circle cx="80" cy="105" r="27" class="residual-node"/><circle cx="340" cy="105" r="27" class="residual-node"/>
+            <text x="80" y="112" text-anchor="middle" class="node-label">A</text>
+            <text x="340" y="112" text-anchor="middle" class="node-label">B</text>
+            <text id="single-original-label" x="210" y="77" text-anchor="middle" class="edge-label">3 / 5</text>
+          </svg>
+          <label for="single-flow" class="residual-slider-label">当前流量 f = <output id="single-flow-value">3</output>
+            <input id="single-flow" type="range" min="0" max="5" step="1" value="3" />
+          </label>
+          <div class="lesson-actions">
+            <button id="single-zero" class="secondary-button">试试 f = 0</button>
+            <button id="single-full" class="secondary-button">试试 f = 5</button>
+          </div>
+        </div>
+        <aside class="graph-info residual-single-panel">
+          <h2>可以怎样调整？</h2>
+          <svg viewBox="0 0 420 210" class="flow-graph" role="img" aria-label="对应的两个残量方向">
+            <defs>
+              <marker id="single-residual-forward" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#38bdf8"/></marker>
+              <marker id="single-residual-back" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#fbbf24"/></marker>
+            </defs>
+            <path id="single-forward" d="M 107 98 Q 210 27 313 98" fill="none" stroke="#38bdf8" stroke-width="4" marker-end="url(#single-residual-forward)"/>
+            <path id="single-back" d="M 313 113 Q 210 187 107 113" fill="none" stroke="#fbbf24" stroke-width="4" stroke-dasharray="9 6" marker-end="url(#single-residual-back)"/>
+            <circle cx="80" cy="105" r="27" class="residual-node"/><circle cx="340" cy="105" r="27" class="residual-node"/>
+            <text x="80" y="112" text-anchor="middle" class="node-label">A</text>
+            <text x="340" y="112" text-anchor="middle" class="node-label">B</text>
+            <text id="single-forward-label" x="210" y="46" text-anchor="middle" class="edge-label">2</text>
+            <text id="single-back-label" x="210" y="177" text-anchor="middle" class="edge-label">3</text>
+          </svg>
+          <p id="single-forward-text">正向 A → B：还能增加 2 单位</p>
+          <p id="single-back-text">反向 B → A：最多撤回 3 单位</p>
+          <p class="graph-keyboard-tip">容量为 0 的残量方向不参与增广，图中会变淡。</p>
+        </aside>
+      </div>
+      <section class="discovery greedy-prompt" aria-live="polite">
+        <strong>观察与猜想</strong>
+        <p id="single-prompt">先试试 f = 0、f = 5，以及至少一个中间值。两个方向的容量有什么规律？</p>
+        <button id="single-reveal" class="primary-button" hidden>查看残量容量的计算规律</button>
+      </section>
+      <section id="single-summary" class="discovery" hidden>
+        <strong>残量容量</strong>
+        <p>正向 A → B：容量 c − f，表示还能增加多少流量。</p>
+        <p>反向 B → A：容量 f，表示最多可以撤回多少旧流量。</p>
+        <p>当某个方向的残量容量为 0 时，该方向不能继续增广。残量网络描述的是当前流量下所有允许的调整。</p>
+      </section>
+      <section class="history-panel"><h2>探索记录</h2><ol id="single-history" aria-live="polite"><li>初始状态：f = 3，正向剩余 2，反向可撤回 3。</li></ol></section>
+    </div></main>
+  `;
+
+  const get = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
+  const slider = get<HTMLInputElement>('single-flow');
+  const reveal = get<HTMLButtonElement>('single-reveal');
+  const prompt = get<HTMLElement>('single-prompt');
+  const history = get<HTMLOListElement>('single-history');
+
+  function update(next: number) {
+    flow = next;
+    slider.value = String(flow);
+    get<HTMLElement>('single-flow-value').textContent = String(flow);
+    get<HTMLElement>('single-original-label').textContent = `${flow} / ${capacity}`;
+    get<HTMLElement>('single-forward-label').textContent = String(capacity - flow);
+    get<HTMLElement>('single-back-label').textContent = String(flow);
+    get<HTMLElement>('single-forward-text').textContent = `正向 A → B：还能增加 ${capacity - flow} 单位`;
+    get<HTMLElement>('single-back-text').textContent = `反向 B → A：最多撤回 ${flow} 单位`;
+    document.getElementById('single-forward')!.classList.toggle('residual-disabled', flow === capacity);
+    document.getElementById('single-back')!.classList.toggle('residual-disabled', flow === 0);
+    visited.add(flow === 0 ? 'zero' : flow === capacity ? 'full' : 'middle');
+    if (visited.size === 3) {
+      reveal.hidden = false;
+      if (!revealed) prompt.textContent = '你已经观察过三个关键状态。现在试着用 c 和 f 表达两个方向的容量。';
+    }
+  }
+  function record(value: number) {
+    const li = document.createElement('li');
+    li.textContent = `f = ${value}：正向剩余 ${capacity - value}，反向可撤回 ${value}。`;
+    history.append(li);
+  }
+  slider.addEventListener('input', () => update(Number(slider.value)));
+  slider.addEventListener('change', () => record(flow));
+  get<HTMLButtonElement>('single-zero').addEventListener('click', () => {
+    update(0);
+    record(flow);
+  });
+  get<HTMLButtonElement>('single-full').addEventListener('click', () => {
+    update(capacity);
+    record(flow);
+  });
+  reveal.addEventListener('click', () => {
+    revealed = true;
+    get<HTMLElement>('single-summary').hidden = false;
+    prompt.textContent = '你发现了残量容量与当前流量的关系。可以继续拖动滑块验证公式。';
+  });
+  get<HTMLButtonElement>('back-button').addEventListener('click', showReverseLesson);
+  update(flow);
 }
 
 showWelcome();
