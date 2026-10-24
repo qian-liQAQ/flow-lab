@@ -295,7 +295,7 @@ export function showFordFulkersonLesson(app: HTMLDivElement, back: () => void) {
       defs.append(marker);
     }
     svg.append(defs);
-    const step = searching && traceIndex >= 0 ? trace[traceIndex] : null;
+    const step = traceIndex >= 0 && (searching || pending !== null) ? trace[traceIndex] : null;
     for (const edge of arcs()) {
       const [x1, y1] = positions[edge.from], [x2, y2] = positions[edge.to];
       const dx = x2 - x1, dy = y2 - y1, len = Math.hypot(dx, dy);
@@ -308,10 +308,10 @@ export function showFordFulkersonLesson(app: HTMLDivElement, back: () => void) {
       const exploring = step?.explored?.index === edge.index && step.explored.reverse === edge.reverse;
       const path = svgEl('path', {
         d: `M ${sx} ${sy} Q ${cx} ${cy} ${ex} ${ey}`,
-        fill: 'none', stroke: active ? '#f8fafc' : exploring ? '#fb923c' : edge.reverse ? '#fbbf24' : '#38bdf8',
+        fill: 'none', stroke: exploring ? '#fb923c' : active ? '#f8fafc' : edge.reverse ? '#fbbf24' : '#38bdf8',
         'stroke-width': active || exploring ? '5' : '3',
         ...(edge.reverse ? { 'stroke-dasharray': '8 6' } : {}),
-        'marker-end': `url(#ff-arrow-${active ? 'selected' : exploring ? 'explore' : edge.reverse ? 'r' : 'f'})`,
+        'marker-end': `url(#ff-arrow-${exploring ? 'explore' : active ? 'selected' : edge.reverse ? 'r' : 'f'})`,
       });
       svg.append(path);
       svg.append(svgEl('text', {
@@ -333,7 +333,7 @@ export function showFordFulkersonLesson(app: HTMLDivElement, back: () => void) {
     get<HTMLElement>('ff-rounds').textContent = String(rounds);
     get<HTMLElement>('ff-path').textContent = pending ? route(pending) : completed ? '无增广路' : '尚未寻找';
     get<HTMLElement>('ff-bottleneck').textContent = pending ? String(amount(pending)) : '—';
-    const step = searching && traceIndex >= 0 ? trace[traceIndex] : null;
+    const step = traceIndex >= 0 && (searching || pending !== null) ? trace[traceIndex] : null;
     get<HTMLElement>('ff-current').textContent = step?.current ?? '—';
     get<HTMLElement>('ff-frontier').textContent = step ? (step.frontier.join(' → ') || '空') : '—';
     get<HTMLElement>('ff-visited').textContent = step ? step.visited.join('、') : '—';
@@ -356,6 +356,8 @@ export function showFordFulkersonLesson(app: HTMLDivElement, back: () => void) {
     rounds++;
     addHistory(path, delta);
     pending = null;
+    trace = [];
+    traceIndex = -1;
     render();
   }
   function finish() {
