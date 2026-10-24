@@ -501,3 +501,16 @@ button { font: inherit; cursor: pointer; }
 .ek-proof-card h3 { margin: 12px 0; }
 .ek-proof-card p { line-height: 1.95; color: #cbd5e1; margin-bottom: 0; }
 @media (max-width: 850px) { .ek-workspace { grid-template-columns: 1fr; } }
+
+
+/* 第十节：以操作分层图为核心，不引入优化细节。 */
+.dn-content { width: min(100%, 1160px); }
+.dn-workspace { grid-template-columns: minmax(0, 1fr) 310px; }
+.dn-graph { padding: 12px 8px; }
+.dn-graph-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 16px; }
+.dn-graph-head span { color: #94a3b8; font-size: 13px; }
+.dn-console { min-width: 0; }
+.dn-clickable { cursor: pointer; }
+.dn-clickable:hover, .dn-clickable:focus-visible { filter: drop-shadow(0 0 5px #7dd3fc); outline: none; }
+.dn-question { margin-top: 22px; }
+@media (max-width: 850px) { .dn-workspace { grid-template-columns: 1fr; } }
