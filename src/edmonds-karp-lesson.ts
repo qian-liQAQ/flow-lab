@@ -1,4 +1,4 @@
-import { showDinicIntroLesson } from './dinic-intro-lesson';
+import { showLayeredGraphLesson } from './layered-graph-lesson';
 import { FLOW_EDGES } from './flow-graph';
 
 type Arc = { from: string; to: string; cap: number; index: number; reverse: boolean };
@@ -94,7 +94,7 @@ export function showEdmondsKarpLesson(app: HTMLDivElement, back: () => void) {
         <p>每次 BFS 扫描残量网络需要 <strong>O(E)</strong>；由于最短距离不会下降，同一条有向残量边成为瓶颈（被饱和）最多 <strong>O(V)</strong> 次。共有 O(E) 条残量边，因此至多 <strong>O(VE)</strong> 次增广，总时间 <strong>O(VE²)</strong>。</p>
         <p>这里的界与容量数值大小无关。下一步学习 Dinic：既然 BFS 已经得到分层，能否一次分层后沿多条路径增广，而不是每条路径都重新 BFS？</p>
       </section>
-      <div class="lesson-actions"><button id="ek-next" class="secondary-button">下一节：Dinic →</button></div>
+      <div class="lesson-actions"><button id="ek-next" class="secondary-button">下一节：为什么需要分层图？→</button></div>
     </div></main>
   `;
 
@@ -304,6 +304,6 @@ export function showEdmondsKarpLesson(app: HTMLDivElement, back: () => void) {
     }
   });
   get<HTMLButtonElement>('ek-back').addEventListener('click', back);
-  get<HTMLButtonElement>('ek-next').addEventListener('click', () => showDinicIntroLesson(app, () => showEdmondsKarpLesson(app, back)));
+  get<HTMLButtonElement>('ek-next').addEventListener('click', () => showLayeredGraphLesson(app, () => showEdmondsKarpLesson(app, back)));
   render();
 }
