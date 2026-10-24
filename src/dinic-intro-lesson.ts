@@ -1,3 +1,4 @@
+import { showDinicCodeLesson } from './dinic-code-lesson';
 import { FLOW_EDGES } from './flow-graph';
 
 type Arc = { from: string; to: string; cap: number; index: number; reverse: boolean };
@@ -85,7 +86,7 @@ export function showDinicIntroLesson(app: HTMLDivElement, back: () => void) {
         <p>Dinic = <strong>BFS 建立分层图 → 在分层图上连续增广得到阻塞流 → 重新 BFS</strong>，直到汇点不可达。</p>
         <p>这里先掌握算法的总体结构。当前弧优化、复杂度证明和其他工程优化将在后续独立章节展开。</p>
       </section>
-      <div class="lesson-actions"><button id="dn-next" class="secondary-button" disabled>下一节：Dinic 优化（即将开放）→</button></div>
+      <div class="lesson-actions"><button id="dn-next" class="secondary-button">下一节：亲手写出 Dinic →</button></div>
     </div></main>
   `;
 
@@ -355,6 +356,7 @@ export function showDinicIntroLesson(app: HTMLDivElement, back: () => void) {
       render();
     });
   });
+  get<HTMLButtonElement>('dn-next').addEventListener('click', () => showDinicCodeLesson(app, () => showDinicIntroLesson(app, back)));
   get<HTMLButtonElement>('dn-back').addEventListener('click', back);
   render();
 }
