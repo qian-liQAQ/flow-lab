@@ -91,7 +91,7 @@ export function showDinicIntroLesson(app: HTMLDivElement, back: () => void) {
   `;
 
   const get = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
-  const svg = document.getElementById('dn-svg') as SVGSVGElement;
+  const svg = document.querySelector<SVGSVGElement>('#dn-svg')!;
   const message = get<HTMLElement>('dn-message');
   const history = get<HTMLOListElement>('dn-history');
   const bfsButton = get<HTMLButtonElement>('dn-bfs');
