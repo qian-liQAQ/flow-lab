@@ -1,4 +1,5 @@
 import { FlowGraph, FLOW_EDGES } from './flow-graph';
+import { showFordFulkersonLesson } from './ford-fulkerson-lesson';
 
 type ResidualEdge = {
   from: string;
@@ -67,7 +68,7 @@ export function showResidualNetworkLesson(app: HTMLDivElement, back: () => void)
         <p>你沿残量路径增加了 1 单位流量，总流量达到 8。正向残量边使原流量增加，反向残量边使原流量减少。</p>
         <p>接下来可以将「寻找残量路径 → 计算瓶颈 → 增广」反复执行，这正是 Ford–Fulkerson 方法的核心。</p>
       </section>
-      <button id="residual-next" class="secondary-button">下一节：Ford–Fulkerson（即将开放）→</button>
+      <button id="residual-next" class="secondary-button">下一节：Ford–Fulkerson →</button>
     </div></main>
   `;
 
@@ -263,10 +264,7 @@ export function showResidualNetworkLesson(app: HTMLDivElement, back: () => void)
     message.textContent = '已恢复流量 7 的案例。试着再次找到残量增广路径。';
     render();
   });
-  get<HTMLButtonElement>('residual-next').addEventListener('click', () => {
-    message.textContent = '下一节 Ford–Fulkerson 正在规划中。先观察本节增广后的残量网络。';
-    message.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  });
+  get<HTMLButtonElement>('residual-next').addEventListener('click', () => showFordFulkersonLesson(app, () => showResidualNetworkLesson(app, back)));
   get<HTMLButtonElement>('back-button').addEventListener('click', back);
   render();
 }
