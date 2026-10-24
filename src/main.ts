@@ -909,5 +909,5 @@ initChapterNavigation(app, (chapter) => {
     12: () => showDinicCodeLesson(app, () => showDinicIntroLesson(app, () => showLayeredGraphLesson(app, () => showEdmondsKarpLesson(app, () => showFordFulkersonLesson(app, () => showResidualNetworkLesson(app, showResidualSingleLesson)))))),
   };
   lessons[chapter]?.();
-  window.scrollTo({ top: 0, behavior: 'instant' });
+  window.scrollTo({ top: 0, behavior: 'auto' });
 });
