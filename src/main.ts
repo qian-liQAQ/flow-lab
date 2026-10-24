@@ -97,7 +97,8 @@ function showConservationIntro() {
         <div class="lesson-meta">第一章 · 什么是最大流？ / 02</div>
         <h1>进入节点的流量，去了哪里？</h1>
         <p class="question">S 向 A 输送了 5 单位流量。A 不会制造或储存流量。请尝试将流量分配到 B 和 C。</p>
-        <div class="graph-panel">
+        <div class="graph-workspace conservation-workspace">
+          <div class="graph-panel">
           <svg class="flow-graph" viewBox="0 0 600 300" role="img" aria-label="S 向 A 发送 5 单位流量，A 分别连接 B 和 C">
             <line x1="120" y1="150" x2="280" y2="150" stroke="#38bdf8" stroke-width="8" stroke-linecap="round" />
             <line x1="320" y1="135" x2="470" y2="75" stroke="#64748b" stroke-width="8" stroke-linecap="round" />
@@ -114,14 +115,19 @@ function showConservationIntro() {
             <text id="ab-label" x="397" y="85" text-anchor="middle" class="edge-label">0</text>
             <text id="ac-label" x="397" y="224" text-anchor="middle" class="edge-label">0</text>
           </svg>
-        </div>
-        <div class="flow-controls">
+          </div>
+          <aside class="graph-info conservation-controls" aria-label="流量分配控制台">
+            <h2>流量控制台</h2>
+            <p class="control-description">拖动滑块，观察 A 向两个方向发送的流量。</p>
+            <div class="flow-controls">
           <label for="ab-flow">A → B：<output id="ab-value">0</output>
             <input id="ab-flow" type="range" min="0" max="7" value="0" />
           </label>
           <label for="ac-flow">A → C：<output id="ac-value">0</output>
             <input id="ac-flow" type="range" min="0" max="7" value="0" />
           </label>
+            </div>
+          </aside>
         </div>
         <div class="lesson-actions">
           <button id="check-button" class="primary-button">验证分配</button>
