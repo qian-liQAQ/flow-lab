@@ -283,3 +283,33 @@ button { font: inherit; cursor: pointer; }
     grid-template-columns: 1fr;
   }
 }
+
+/* 第四节：路径选择与反例引导 */
+.greedy-total {
+  margin: 4px 0 16px;
+  color: #7dd3fc;
+  font-size: 30px;
+  font-weight: 700;
+}
+
+.greedy-path-edge {
+  filter: drop-shadow(0 0 8px #fbbf24);
+}
+
+.greedy-path-edge line:nth-child(2) {
+  stroke: #fbbf24;
+  stroke-width: 5;
+}
+
+.greedy-prompt {
+  border-color: #0e7490;
+  background: #102b3b;
+}
+
+.greedy-prompt strong {
+  color: #7dd3fc;
+}
+
+.greedy-prompt .primary-button {
+  margin-top: 12px;
+}
