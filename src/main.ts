@@ -1,4 +1,5 @@
 import './style.css';
+import { FlowGraph } from './flow-graph';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 
@@ -291,6 +292,18 @@ function showValidityPreview() {
       <text x="${x}" y="${y + 8}" text-anchor="middle" class="node-label">${name}</text>`
     );
     svg.innerHTML = `<defs><marker id="valid-arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#94a3b8"/></marker></defs>${parts.join('')}${nodes.join('')}`;
+    const graph = new FlowGraph(svg, selection => {
+      if (!selection) return;
+      if (selection.type === 'edge') {
+        const edge = edges[selection.index];
+        note(edge.from + ' → ' + edge.to + '：流量 ' + edge.flow + ' / 容量 ' + edge.cap);
+      } else {
+        const incoming = edges.filter(e => e.to === selection.id).reduce((s, e) => s + e.flow, 0);
+        const outgoing = edges.filter(e => e.from === selection.id).reduce((s, e) => s + e.flow, 0);
+        note(selection.id + '：流入 ' + incoming + '，流出 ' + outgoing);
+      }
+    });
+    graph.setEdges(edges);
     note(`第 ${round} 组方案已生成。你认为它是否合法？`);
   }
   function check(guessValid: boolean) {
