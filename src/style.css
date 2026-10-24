@@ -430,3 +430,17 @@ button { font: inherit; cursor: pointer; }
     grid-template-columns: 1fr;
   }
 }
+
+/* 统一章节垂直节奏：操作栏与前一个区块、独立的下一节按钮都留白。 */
+.lesson-content > .lesson-actions {
+  margin-top: 20px;
+}
+.lesson-content > .lesson-actions + .history-panel {
+  margin-top: 28px;
+}
+.lesson-content > .discovery + .secondary-button {
+  margin-top: 20px;
+}
+.lesson-content > .history-panel + .secondary-button {
+  margin-top: 20px;
+}
