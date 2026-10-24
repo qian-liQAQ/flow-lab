@@ -1,5 +1,6 @@
 import './style.css';
 import { FlowGraph } from './flow-graph';
+import { showResidualNetworkLesson } from './residual-network-lesson';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 
@@ -830,6 +831,7 @@ function showResidualSingleLesson() {
         <p>反向 B → A：容量 f，表示最多可以撤回多少旧流量。</p>
         <p>当某个方向的残量容量为 0 时，该方向不能继续增广。残量网络描述的是当前流量下所有允许的调整。</p>
       </section>
+      <div class="lesson-actions"><button id="single-next" class="secondary-button">下一节：完整残量网络 →</button></div>
       <section class="history-panel"><h2>探索记录</h2><ol id="single-history" aria-live="polite"><li>初始状态：f = 3，正向剩余 2，反向可撤回 3。</li></ol></section>
     </div></main>
   `;
@@ -877,6 +879,7 @@ function showResidualSingleLesson() {
     get<HTMLElement>('single-summary').hidden = false;
     prompt.textContent = '你发现了残量容量与当前流量的关系。可以继续拖动滑块验证公式。';
   });
+  get<HTMLButtonElement>('single-next').addEventListener('click', () => showResidualNetworkLesson(app, showResidualSingleLesson));
   get<HTMLButtonElement>('back-button').addEventListener('click', showReverseLesson);
   update(flow);
 }
