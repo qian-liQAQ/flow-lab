@@ -383,3 +383,50 @@ button { font: inherit; cursor: pointer; }
 .greedy-prompt + .lesson-actions {
   margin-top: 20px;
 }
+
+/* 第七节：两张图并列，对照原边与残量边。 */
+.residual-dual {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin: 20px 0;
+}
+.residual-dual-panel {
+  min-width: 0;
+}
+.residual-dual-panel h2 {
+  margin: 0 0 12px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 18px;
+}
+.residual-dual-panel h2 span {
+  font-size: 14px;
+  color: #7dd3fc;
+}
+.residual-dual-panel svg {
+  width: 100%;
+  display: block;
+}
+.residual-clickable {
+  cursor: pointer;
+}
+.residual-clickable:hover,
+.residual-clickable:focus-visible {
+  filter: drop-shadow(0 0 6px #38bdf8);
+  outline: none;
+}
+.residual-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 28px;
+  margin: 16px 0;
+  color: #cbd5e1;
+}
+@media (max-width: 860px) {
+  .residual-dual {
+    grid-template-columns: 1fr;
+  }
+}
