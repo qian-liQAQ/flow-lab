@@ -232,7 +232,7 @@ function showValidityPreview() {
       <div class="lesson-meta">第一章 · 什么是最大流？ / 03</div>
       <h1>这是一组合法的流量吗？</h1>
       <p class="question">每条边标注「流量 / 容量」。判断整张网络是否同时满足容量限制和中间节点的流量守恒。</p>
-      <div class="graph-panel"><svg id="validity-graph" class="flow-graph" viewBox="0 0 650 360" role="img" aria-label="六节点七条边的流量网络"></svg></div>
+      <div class="graph-workspace"><div class="graph-panel"><svg id="validity-graph" class="flow-graph" viewBox="0 0 650 360" role="img" aria-label="六节点七条边的流量网络"></svg></div><aside class="graph-info"><h2>元素信息</h2><p id="graph-preview">将鼠标悬停在节点或边上查看信息。</p><h3>已选中</h3><p id="graph-selected">尚未选中元素。</p><p class="graph-keyboard-tip">键盘操作：Tab 切换元素，Enter 或空格选中。</p></aside></div>
       <div class="lesson-actions">
         <button id="valid-button" class="primary-button">合法</button>
         <button id="invalid-button" class="secondary-button">不合法</button>
@@ -244,6 +244,22 @@ function showValidityPreview() {
   `;
   const svg = document.querySelector<SVGSVGElement>('#validity-graph')!;
   const history = document.querySelector<HTMLOListElement>('#validity-history')!;
+  const preview = document.querySelector<HTMLParagraphElement>('#graph-preview')!;
+  const selected = document.querySelector<HTMLParagraphElement>('#graph-selected')!;
+  function describe(selection: { type: 'node'; id: string } | { type: 'edge'; index: number }) {
+    if (selection.type === 'edge') {
+      const e = edges[selection.index];
+      return e.from + ' → ' + e.to + '：流量 ' + e.flow + ' / 容量 ' + e.cap;
+    }
+    const incoming = edges.filter(e => e.to === selection.id).reduce((s, e) => s + e.flow, 0);
+    const outgoing = edges.filter(e => e.from === selection.id).reduce((s, e) => s + e.flow, 0);
+    return selection.id + '：流入 ' + incoming + '，流出 ' + outgoing;
+  }
+  const graph = new FlowGraph(svg,
+    selection => { if (selection) selected.textContent = describe(selection); },
+    selection => { preview.textContent = selection ? describe(selection) : '将鼠标悬停在节点或边上查看信息。'; },
+  );
+
   function note(message: string) {
     const li = document.createElement('li');
     li.textContent = message;
@@ -275,18 +291,9 @@ function showValidityPreview() {
       f[i]++;
     }
     edges = base.map((e, i) => ({ ...e, flow: f[i] }));
-    const graph = new FlowGraph(svg, selection => {
-      if (!selection) return;
-      if (selection.type === 'edge') {
-        const edge = edges[selection.index];
-        note(edge.from + ' → ' + edge.to + '：流量 ' + edge.flow + ' / 容量 ' + edge.cap);
-      } else {
-        const incoming = edges.filter(e => e.to === selection.id).reduce((s, e) => s + e.flow, 0);
-        const outgoing = edges.filter(e => e.from === selection.id).reduce((s, e) => s + e.flow, 0);
-        note(selection.id + '：流入 ' + incoming + '，流出 ' + outgoing);
-      }
-    });
     graph.setEdges(edges);
+    selected.textContent = '尚未选中元素。';
+    preview.textContent = '将鼠标悬停在节点或边上查看信息。';
     note(`第 ${round} 组方案已生成。你认为它是否合法？`);
   }
   function check(guessValid: boolean) {
