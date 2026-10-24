@@ -1,4 +1,10 @@
 import './style.css';
+import { initChapterNavigation } from './chapter-navigation';
+import { showFordFulkersonLesson } from './ford-fulkerson-lesson';
+import { showEdmondsKarpLesson } from './edmonds-karp-lesson';
+import { showLayeredGraphLesson } from './layered-graph-lesson';
+import { showDinicIntroLesson } from './dinic-intro-lesson';
+import { showDinicCodeLesson } from './dinic-code-lesson';
 import { FlowGraph } from './flow-graph';
 import { showResidualNetworkLesson } from './residual-network-lesson';
 
@@ -885,3 +891,23 @@ function showResidualSingleLesson() {
 }
 
 showWelcome();
+
+initChapterNavigation(app, (chapter) => {
+  const lessons: Record<number, () => void> = {
+    0: showWelcome,
+    1: showCapacityLesson,
+    2: showConservationIntro,
+    3: showValidityPreview,
+    4: showGreedyPreview,
+    5: showReverseLesson,
+    6: showResidualSingleLesson,
+    7: () => showResidualNetworkLesson(app, showResidualSingleLesson),
+    8: () => showFordFulkersonLesson(app, () => showResidualNetworkLesson(app, showResidualSingleLesson)),
+    9: () => showEdmondsKarpLesson(app, () => showFordFulkersonLesson(app, () => showResidualNetworkLesson(app, showResidualSingleLesson))),
+    10: () => showLayeredGraphLesson(app, () => showEdmondsKarpLesson(app, () => showFordFulkersonLesson(app, () => showResidualNetworkLesson(app, showResidualSingleLesson)))),
+    11: () => showDinicIntroLesson(app, () => showLayeredGraphLesson(app, () => showEdmondsKarpLesson(app, () => showFordFulkersonLesson(app, () => showResidualNetworkLesson(app, showResidualSingleLesson))))),
+    12: () => showDinicCodeLesson(app, () => showDinicIntroLesson(app, () => showLayeredGraphLesson(app, () => showEdmondsKarpLesson(app, () => showFordFulkersonLesson(app, () => showResidualNetworkLesson(app, showResidualSingleLesson)))))),
+  };
+  lessons[chapter]?.();
+  window.scrollTo({ top: 0, behavior: 'instant' });
+});
