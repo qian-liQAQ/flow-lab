@@ -28,10 +28,10 @@ export function showDinicIntroLesson(app: HTMLDivElement, back: () => void) {
 
   app.innerHTML = `
     <main class="screen lesson"><div class="lesson-content dn-content">
-      <button id="dn-back" class="text-button">← 返回第九节</button>
-      <div class="lesson-meta">第三章 · 最大流算法 / 10</div>
-      <h1>一次 BFS，能不能增广不止一条路？</h1>
-      <p class="question">Edmonds–Karp 找到一条路径就重新 BFS。Dinic 的想法是：先用 BFS 建立<strong>分层图</strong>，然后在同一张分层图里反复增广，直到形成<strong>阻塞流</strong>。</p>
+      <button id="dn-back" class="text-button">← 返回第十节</button>
+      <div class="lesson-meta">第三章 · 最大流算法 / 11</div>
+      <h1>同一张分层图，能走多少条路？</h1>
+      <p class="question">上一节已经筛选出了分层图。现在只研究一件事：<strong>如果分层图里还有其他从 S 到 T 的路径，为什么要立即重新 BFS？</strong>试着连续增广，直到再也找不到这样的路径。</p>
 
       <div class="graph-workspace dn-workspace">
         <section class="graph-panel dn-graph">
