@@ -378,3 +378,8 @@ button { font: inherit; cursor: pointer; }
   display: inline-block;
   margin-top: 18px;
 }
+
+/* 第五节：探索卡片和紧随其后的操作栏之间留出明确间距。 */
+.greedy-prompt + .lesson-actions {
+  margin-top: 20px;
+}
