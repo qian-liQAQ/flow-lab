@@ -669,21 +669,27 @@ function showReverseLesson() {
     group.setAttribute('role', 'button');
     group.setAttribute('tabindex', '0');
     group.setAttribute('aria-label', `D 到 A，允许撤回 ${flows[4]} 单位流量`);
-    const line = document.createElementNS(ns, 'line');
-    // A=(230,80), D=(420,280)，略微平移以与原来的 A→D 区分。
-    line.setAttribute('x1', '397');
-    line.setAttribute('y1', '251');
-    line.setAttribute('x2', '257');
-    line.setAttribute('y2', '104');
+    // 反向边改为向下弯曲的曲线，与 A→D 直线明显分离。
+    const curve = 'M 408 265 Q 470 126 249 93';
+    const hit = document.createElementNS(ns, 'path');
+    hit.setAttribute('d', curve);
+    hit.setAttribute('fill', 'none');
+    hit.setAttribute('stroke', 'transparent');
+    hit.setAttribute('stroke-width', '26');
+    hit.setAttribute('pointer-events', 'stroke');
+    group.append(hit);
+    const line = document.createElementNS(ns, 'path');
+    line.setAttribute('d', curve);
+    line.setAttribute('fill', 'none');
     line.setAttribute('stroke', '#fbbf24');
     line.setAttribute('stroke-width', path.includes(7) ? '6' : '4');
     line.setAttribute('stroke-dasharray', '9 7');
     line.setAttribute('marker-end', 'url(#flowgraph-arrow)');
-    line.setAttribute('pointer-events', 'stroke');
+    line.setAttribute('pointer-events', 'none');
     group.append(line);
     const label = document.createElementNS(ns, 'text');
-    label.setAttribute('x', '348');
-    label.setAttribute('y', '160');
+    label.setAttribute('x', '420');
+    label.setAttribute('y', '139');
     label.setAttribute('class', 'edge-label');
     label.setAttribute('fill', '#fbbf24');
     label.setAttribute('pointer-events', 'none');
@@ -702,7 +708,8 @@ function showReverseLesson() {
     group.addEventListener('mouseleave', () => {
       preview.textContent = '黄色虚线代表可撤回的流量。';
     });
-    svg.append(group);
+    // 放在 SVG 的最前面：Tab 首先聚焦反向边，同时鼠标命中区域更大。
+    svg.insertBefore(group, svg.firstChild);
   }
   function render() {
     graph.setEdges(base.map((e, i) => ({ ...e, flow: flows[i] })));
