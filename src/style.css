@@ -482,3 +482,22 @@ button { font: inherit; cursor: pointer; }
 @media (max-width: 850px) {
   .ff-workspace { grid-template-columns: 1fr; }
 }
+
+
+/* 第九节：BFS 分层观察与分步推导。 */
+.ek-content { width: min(100%, 1120px); }
+.ek-workspace { grid-template-columns: minmax(0, 1fr) 310px; }
+.ek-graph { padding: 12px 8px; }
+.ek-graph-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 16px; }
+.ek-graph-head span { color: #94a3b8; font-size: 13px; }
+.ek-console { min-width: 0; }
+.ek-small { color: #94a3b8; font-size: 13px; line-height: 1.7; }
+.ek-answers { display: grid; gap: 10px; margin-top: 18px; }
+.ek-answers button { text-align: left; }
+.ek-answers button[aria-pressed="true"] { border-color: #38bdf8; color: #7dd3fc; }
+.ek-answers button:disabled:not([aria-pressed="true"]) { opacity: .55; cursor: default; }
+#ek-feedback { color: #7dd3fc; line-height: 1.8; }
+.ek-proof-card { background: #142235; border: 1px solid #334155; padding: 20px 22px; border-radius: 14px; }
+.ek-proof-card h3 { margin: 12px 0; }
+.ek-proof-card p { line-height: 1.95; color: #cbd5e1; margin-bottom: 0; }
+@media (max-width: 850px) { .ek-workspace { grid-template-columns: 1fr; } }
