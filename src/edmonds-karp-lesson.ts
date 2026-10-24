@@ -99,7 +99,7 @@ export function showEdmondsKarpLesson(app: HTMLDivElement, back: () => void) {
   `;
 
   const get = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
-  const svg = document.getElementById('ek-svg') as SVGSVGElement;
+  const svg = document.querySelector<SVGSVGElement>('#ek-svg')!;
   const message = get<HTMLElement>('ek-message');
   const history = get<HTMLOListElement>('ek-history');
   const bfsButton = get<HTMLButtonElement>('ek-bfs');
