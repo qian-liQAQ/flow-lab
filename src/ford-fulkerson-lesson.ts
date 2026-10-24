@@ -1,4 +1,4 @@
-import { FLOW_EDGES, FlowGraph } from './flow-graph';
+import { FLOW_EDGES } from './flow-graph';
 
 type Arc = { from: string; to: string; cap: number; index: number; reverse: boolean };
 type Strategy = 'dfs' | 'bfs';
@@ -121,7 +121,6 @@ function svgEl(tag: string, attrs: Record<string, string>, label?: string): SVGE
 export function showFordFulkersonLesson(app: HTMLDivElement, back: () => void) {
   let flows = FLOW_EDGES.map(() => 0);
   let strategy: Strategy = 'dfs';
-  let view: 'original' | 'residual' = 'residual';
   let pending: Arc[] | null = null;
   let rounds = 0;
   let completed = false;
@@ -135,7 +134,7 @@ export function showFordFulkersonLesson(app: HTMLDivElement, back: () => void) {
       <p class="question">每次只需要寻找一条增广路、计算瓶颈并更新残量网络。尝试反复寻找增广路并执行增广，直到残量网络中再也找不到路径。</p>
       <div class="graph-workspace ff-workspace">
         <section class="graph-panel ff-graph">
-          <div class="ff-graph-header"><strong id="ff-graph-title">残量网络</strong><button id="ff-toggle" class="secondary-button">切换到原网络</button></div>
+          <div class="ff-graph-header"><strong>残量网络</strong></div>
           <svg id="ff-svg" class="flow-graph" viewBox="0 0 650 360" aria-label="Ford–Fulkerson 算法网络图"></svg>
           <p class="ff-legend">蓝色实线：正向残量边　黄色虚线：反向残量边　白色：本次增广路</p>
         </section>
@@ -183,7 +182,6 @@ export function showFordFulkersonLesson(app: HTMLDivElement, back: () => void) {
 
   const get = <T extends Element>(id: string) => document.getElementById(id) as unknown as T;
   const svg = get<SVGSVGElement>('ff-svg');
-  const graph = new FlowGraph(svg);
   const message = get<HTMLElement>('ff-message');
   const findButton = get<HTMLButtonElement>('ff-find');
   const applyButton = get<HTMLButtonElement>('ff-apply');
@@ -269,15 +267,7 @@ export function showFordFulkersonLesson(app: HTMLDivElement, back: () => void) {
     }
   }
   function render() {
-    if (view === 'original') {
-      graph.setEdges(FLOW_EDGES.map((e, i) => ({ ...e, flow: flows[i] })));
-      get<HTMLElement>('ff-graph-title').textContent = '原网络';
-      get<HTMLButtonElement>('ff-toggle').textContent = '切换到残量网络';
-    } else {
-      drawResidual();
-      get<HTMLElement>('ff-graph-title').textContent = '残量网络';
-      get<HTMLButtonElement>('ff-toggle').textContent = '切换到原网络';
-    }
+    drawResidual();
     get<HTMLElement>('ff-total').textContent = String(total());
     get<HTMLElement>('ff-rounds').textContent = String(rounds);
     get<HTMLElement>('ff-path').textContent = pending ? route(pending) : completed ? '无增广路' : '尚未寻找';
@@ -332,10 +322,6 @@ export function showFordFulkersonLesson(app: HTMLDivElement, back: () => void) {
   get<HTMLSelectElement>('ff-strategy').addEventListener('change', event => {
     strategy = (event.target as HTMLSelectElement).value as Strategy;
     reset();
-  });
-  get<HTMLButtonElement>('ff-toggle').addEventListener('click', () => {
-    view = view === 'original' ? 'residual' : 'original';
-    render();
   });
   function renderCode() {
     get<HTMLElement>('ff-code').textContent = codeTab === 'dfs' ? dfsCode : bfsCode;
