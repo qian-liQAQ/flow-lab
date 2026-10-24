@@ -367,6 +367,7 @@ function showGreedyPreview() {
         <button id="greedy-clear-path" class="secondary-button">清空路径</button>
         <button id="greedy-undo-flow" class="secondary-button">撤销上次增广</button>
         <button id="greedy-reset" class="secondary-button">重置网络</button>
+        <button id="greedy-next" class="secondary-button">下一节：修正流量 →</button>
       </div>
       <section id="greedy-prompt" class="discovery greedy-prompt" aria-live="polite">
         <strong>实验提示</strong><p id="greedy-message">先试着找一条 S 到 T 的路径。每条边显示「当前流量 / 容量」。</p>
@@ -540,7 +541,220 @@ function showGreedyPreview() {
     render();
   });
   byId<HTMLButtonElement>('greedy-retry').addEventListener('click', () => reset('explore'));
+  byId<HTMLButtonElement>('greedy-next').addEventListener('click', showReverseLesson);
   byId<HTMLButtonElement>('back-button').addEventListener('click', showValidityPreview);
+  render();
+}
+
+/**
+ * 第五节：从第四节的阻塞状态出发，尝试撤销 A→D 上的一部分流量。
+ * 反向残量边 D→A 表示可撤回的流量，不是原图中新建的管道。
+ */
+function showReverseLesson() {
+  const base = [
+    { from: 'S', to: 'A', cap: 5 }, { from: 'S', to: 'B', cap: 4 },
+    { from: 'A', to: 'C', cap: 3 }, { from: 'B', to: 'D', cap: 4 },
+    { from: 'A', to: 'D', cap: 3 }, { from: 'C', to: 'T', cap: 3 },
+    { from: 'D', to: 'T', cap: 5 },
+  ];
+  const initial = [5, 2, 2, 2, 3, 2, 5];
+  let flows = [...initial];
+  let path: number[] = [];
+  let revealed = false;
+  let finished = false;
+  // 下标 7 专门代表残量反向边 D→A，实际修改的是原边 A→D。
+  const route = [1, 3, 7, 2, 5];
+  const ends = [
+    ...base.map(e => ({ from: e.from, to: e.to })),
+    { from: 'D', to: 'A' },
+  ];
+
+  app.innerHTML = `
+    <main class="screen lesson"><div class="lesson-content">
+      <button id="back-button" class="text-button">← 返回第四节重新实验</button>
+      <div class="lesson-meta">第二章 · 贪心的陷阱 / 05</div>
+      <h1>不全部重来，能把流量从 7 变成 8 吗？</h1>
+      <p class="question">这里预设了第四节的阻塞案例：先沿 S → A → D → T 发送 3，再沿 S → A → C → T 和 S → B → D → T 各发送 2。现在没有正向增广路径了。</p>
+      <div class="graph-workspace">
+        <div class="graph-panel"><svg id="reverse-graph" class="flow-graph" viewBox="0 0 650 360" aria-label="包含可撤回流量的残量网络实验"></svg></div>
+        <aside class="graph-info">
+          <h2>流量调整台</h2>
+          <h3>当前总流量</h3><p id="reverse-total" class="greedy-total">7 / 8</p>
+          <h3>当前选择</h3><p id="reverse-path">S</p>
+          <p id="reverse-limit">可调整流量：—</p>
+          <p id="reverse-hover" class="graph-keyboard-tip">点击边依次连接路径。黄色虚线代表可以撤回的流量。</p>
+        </aside>
+      </div>
+      <section class="discovery greedy-prompt" aria-live="polite">
+        <strong>探索问题</strong>
+        <p id="reverse-message">观察 A → D 上的 3 单位流量。如果把其中一部分退回 A，能否改走 A → C？</p>
+        <button id="reverse-reveal" class="secondary-button">显示可撤回的方向 D → A</button>
+      </section>
+      <div class="lesson-actions">
+        <button id="reverse-apply" class="primary-button" disabled>沿选定路径调整流量</button>
+        <button id="reverse-undo" class="secondary-button">撤销选边</button>
+        <button id="reverse-clear" class="secondary-button">清空路径</button>
+        <button id="reverse-reset" class="secondary-button">重置阻塞案例</button>
+      </div>
+      <section class="history-panel"><h2>探索记录</h2><ol id="reverse-history" aria-live="polite"></ol></section>
+      <div id="reverse-summary" class="discovery" hidden>
+        <strong>你成功把总流量从 7 提升到了 8！</strong>
+        <p>沿 D → A 走 1 单位，实际上是在原边 A → D 上撤回 1 单位；其余正向边增加 1 单位。整个过程中，容量限制和流量守恒仍然成立。</p>
+        <p>这就是残量网络中反向边的意义：允许算法修正以前的流量分配。下一节我们将系统地认识残量网络。</p>
+      </div>
+    </div></main>
+  `;
+
+  const get = <T extends Element>(id: string) => document.getElementById(id) as unknown as T;
+  const svg = get<SVGSVGElement>('reverse-graph');
+  const message = get<HTMLElement>('reverse-message');
+  const preview = get<HTMLElement>('reverse-hover');
+  const pathText = get<HTMLElement>('reverse-path');
+  const limit = get<HTMLElement>('reverse-limit');
+  const total = get<HTMLElement>('reverse-total');
+  const apply = get<HTMLButtonElement>('reverse-apply');
+  const reveal = get<HTMLButtonElement>('reverse-reveal');
+  const summary = get<HTMLElement>('reverse-summary');
+  const history = get<HTMLOListElement>('reverse-history');
+
+  function residual(i: number) {
+    return i === 7 ? flows[4] : base[i].cap - flows[i];
+  }
+  function current() {
+    return path.length ? ends[path[path.length - 1]].to : 'S';
+  }
+  function amount() {
+    return path.length ? Math.min(...path.map(residual)) : 0;
+  }
+  function note(value: string) {
+    const li = document.createElement('li');
+    li.textContent = value;
+    history.append(li);
+  }
+  function choose(i: number) {
+    if (finished) return;
+    const edge = ends[i];
+    if (current() === 'T') {
+      message.textContent = '路径已经到达 T，可以执行调整。';
+    } else if (edge.from !== current()) {
+      message.textContent = `当前位于 ${current()}，请选择从这里出发的边。`;
+    } else if (residual(i) <= 0) {
+      message.textContent = '这条方向上没有剩余可调整的流量。';
+    } else if (['S', ...path.map(j => ends[j].to)].includes(edge.to)) {
+      message.textContent = '先尝试不重复节点的路径。';
+    } else {
+      path.push(i);
+      message.textContent = i === 7
+        ? '你选择了 D → A。这一步将撤回 A → D 上的一部分旧流量。'
+        : '已选中一条边。继续尝试走到 T。';
+    }
+    render();
+  }
+  const graph = new FlowGraph(svg, selection => {
+    if (selection?.type === 'edge') choose(selection.index);
+  }, selection => {
+    if (selection?.type !== 'edge') {
+      preview.textContent = '黄色虚线代表可撤回的流量。';
+      return;
+    }
+    const i = selection.index;
+    preview.textContent = `${base[i].from} → ${base[i].to}：${flows[i]} / ${base[i].cap}，正向剩余 ${residual(i)}`;
+  });
+
+  function drawReverse() {
+    if (!revealed) return;
+    const ns = 'http://www.w3.org/2000/svg';
+    const group = document.createElementNS(ns, 'g');
+    group.setAttribute('class', 'flowgraph-interactive reverse-edge');
+    group.setAttribute('role', 'button');
+    group.setAttribute('tabindex', '0');
+    group.setAttribute('aria-label', `D 到 A，允许撤回 ${flows[4]} 单位流量`);
+    const line = document.createElementNS(ns, 'line');
+    // A=(230,80), D=(420,280)，略微平移以与原来的 A→D 区分。
+    line.setAttribute('x1', '397');
+    line.setAttribute('y1', '251');
+    line.setAttribute('x2', '257');
+    line.setAttribute('y2', '104');
+    line.setAttribute('stroke', '#fbbf24');
+    line.setAttribute('stroke-width', path.includes(7) ? '6' : '4');
+    line.setAttribute('stroke-dasharray', '9 7');
+    line.setAttribute('marker-end', 'url(#flowgraph-arrow)');
+    line.setAttribute('pointer-events', 'stroke');
+    group.append(line);
+    const label = document.createElementNS(ns, 'text');
+    label.setAttribute('x', '348');
+    label.setAttribute('y', '160');
+    label.setAttribute('class', 'edge-label');
+    label.setAttribute('fill', '#fbbf24');
+    label.setAttribute('pointer-events', 'none');
+    label.textContent = `撤回 ≤ ${flows[4]}`;
+    group.append(label);
+    group.addEventListener('click', () => choose(7));
+    group.addEventListener('keydown', event => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        choose(7);
+      }
+    });
+    group.addEventListener('mouseenter', () => {
+      preview.textContent = `D → A：最多撤回 ${flows[4]} 单位 A → D 上的流量。`;
+    });
+    group.addEventListener('mouseleave', () => {
+      preview.textContent = '黄色虚线代表可撤回的流量。';
+    });
+    svg.append(group);
+  }
+  function render() {
+    graph.setEdges(base.map((e, i) => ({ ...e, flow: flows[i] })));
+    svg.querySelectorAll<SVGGElement>('g.flowgraph-interactive').forEach((el, i) => {
+      if (path.includes(i)) el.classList.add('greedy-path-edge');
+    });
+    drawReverse();
+    pathText.textContent = ['S', ...path.map(i => ends[i].to)].join(' → ');
+    limit.textContent = path.length ? `可调整流量：${amount()}` : '可调整流量：—';
+    total.textContent = `${flows[0] + flows[1]} / 8`;
+    apply.disabled = current() !== 'T' || amount() <= 0 || finished;
+    reveal.hidden = revealed;
+    summary.hidden = !finished;
+  }
+  reveal.addEventListener('click', () => {
+    revealed = true;
+    message.textContent = '黄色虚线 D → A 表示撤回 A → D 上的流量。尝试从 S 出发，找到一条经过它并抵达 T 的路径。';
+    note('发现了可撤回的方向 D → A。');
+    render();
+  });
+  apply.addEventListener('click', () => {
+    if (current() !== 'T' || amount() <= 0 || finished) return;
+    const delta = amount();
+    const chosen = ['S', ...path.map(i => ends[i].to)].join(' → ');
+    path.forEach(i => {
+      if (i === 7) flows[4] -= delta;
+      else flows[i] += delta;
+    });
+    note(`${chosen}：调整 ${delta} 单位，总流量变为 ${flows[0] + flows[1]}。`);
+    path = [];
+    finished = flows[0] + flows[1] === 8;
+    message.textContent = finished
+      ? '调整成功！没有清空旧流量，总流量已经从 7 增加到 8。'
+      : '调整完成，继续观察是否还能找到可用路径。';
+    render();
+  });
+  get<HTMLButtonElement>('reverse-undo').addEventListener('click', () => {
+    path.pop();
+    render();
+  });
+  get<HTMLButtonElement>('reverse-clear').addEventListener('click', () => {
+    path = [];
+    render();
+  });
+  get<HTMLButtonElement>('reverse-reset').addEventListener('click', () => {
+    flows = [...initial];
+    path = [];
+    finished = false;
+    message.textContent = '已恢复流量 7 的阻塞案例。试着找到无需全部重来的调整方式。';
+    render();
+  });
+  get<HTMLButtonElement>('back-button').addEventListener('click', showGreedyPreview);
   render();
 }
 
