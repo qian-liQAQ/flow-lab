@@ -26,10 +26,13 @@ export function nodeBalance(edges: FlowEdge[], node: string) {
 export class FlowGraph {
   private edges: FlowEdge[] = [];
   private selected: FlowSelection = null;
-  constructor(
-    private svg: SVGSVGElement,
-    private onSelect?: (selection: FlowSelection) => void,
-  ) {}
+  private svg: SVGSVGElement;
+  private onSelect?: (selection: FlowSelection) => void;
+
+  constructor(svg: SVGSVGElement, onSelect?: (selection: FlowSelection) => void) {
+    this.svg = svg;
+    this.onSelect = onSelect;
+  }
 
   setEdges(edges: FlowEdge[]) {
     this.edges = edges.map(e => ({ ...e }));
