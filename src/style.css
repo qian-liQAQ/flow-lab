@@ -514,3 +514,21 @@ button { font: inherit; cursor: pointer; }
 .dn-clickable:hover, .dn-clickable:focus-visible { filter: drop-shadow(0 0 5px #7dd3fc); outline: none; }
 .dn-question { margin-top: 22px; }
 @media (max-width: 850px) { .dn-workspace { grid-template-columns: 1fr; } }
+
+
+/* 第十节：BFS 分层图的概念引导与边筛选。 */
+.lg-content { width: min(100%, 1100px); }
+.lg-workspace { grid-template-columns: minmax(0, 1fr) 310px; }
+.lg-graph { padding: 12px 8px; }
+.lg-graph-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 16px; }
+.lg-graph-head span { color: #94a3b8; font-size: 13px; }
+.lg-console { min-width: 0; }
+.lg-edge { cursor: pointer; }
+.lg-edge:hover, .lg-edge:focus-visible { filter: drop-shadow(0 0 5px #fb923c); outline: none; }
+.lg-quiz { margin-top: 22px; }
+.lg-quiz p { line-height: 1.8; }
+.lg-answers { display: flex; flex-wrap: wrap; gap: 12px; margin: 16px 0; }
+.lg-answers button:disabled { opacity: .55; cursor: default; }
+#lg-feedback { color: #7dd3fc; min-height: 1.7em; }
+#lg-next-trial { margin-top: 8px; }
+@media (max-width: 850px) { .lg-workspace { grid-template-columns: 1fr; } }
