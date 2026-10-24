@@ -1,9 +1,11 @@
+/** 一条有向边：cap 是容量，flow 是当前流量。 */
 export type FlowEdge = { from: string; to: string; cap: number; flow: number };
 export type FlowSelection =
   | { type: 'node'; id: string }
   | { type: 'edge'; index: number }
   | null;
 
+/** 全课程复用的七边示例网络。 */
 export const FLOW_EDGES: Omit<FlowEdge, 'flow'>[] = [
   { from: 'S', to: 'A', cap: 5 }, { from: 'S', to: 'B', cap: 4 },
   { from: 'A', to: 'C', cap: 3 }, { from: 'B', to: 'D', cap: 4 },
@@ -16,6 +18,7 @@ const positions: Record<string, [number, number]> = {
   C: [420, 80], D: [420, 280], T: [575, 180],
 };
 
+/** 统计节点流入和流出；是否守恒由教学层决定。 */
 export function nodeBalance(edges: FlowEdge[], node: string) {
   return {
     incoming: edges.filter(e => e.to === node).reduce((sum, e) => sum + e.flow, 0),
@@ -23,6 +26,10 @@ export function nodeBalance(edges: FlowEdge[], node: string) {
   };
 }
 
+/**
+ * SVG 交互视图：负责绘制和选择，不负责判断流是否合法。
+ * onHover 是临时预览，onSelect 是用户明确选中。
+ */
 export class FlowGraph {
   private edges: FlowEdge[] = [];
   private selected: FlowSelection = null;
@@ -30,12 +37,17 @@ export class FlowGraph {
   private onSelect?: (selection: FlowSelection) => void;
   private onHover?: (selection: FlowSelection) => void;
 
-  constructor(svg: SVGSVGElement, onSelect?: (selection: FlowSelection) => void, onHover?: (selection: FlowSelection) => void) {
+  constructor(
+    svg: SVGSVGElement,
+    onSelect?: (selection: FlowSelection) => void,
+    onHover?: (selection: FlowSelection) => void,
+  ) {
     this.svg = svg;
     this.onSelect = onSelect;
     this.onHover = onHover;
   }
 
+  /** 更新显示数据，同时清除上一次选中状态。 */
   setEdges(edges: FlowEdge[]) {
     this.edges = edges.map(e => ({ ...e }));
     this.selected = null;
@@ -48,10 +60,16 @@ export class FlowGraph {
     this.onSelect?.(selection);
   }
 
+  /** 根据当前数据重绘节点和边。 */
   render() {
     const ns = 'http://www.w3.org/2000/svg';
     this.svg.replaceChildren();
-    const make = (tag: string, attrs: Record<string, string>, label?: string) => {
+    // 集中创建 SVG 元素，避免重复书写命名空间与属性设置。
+    const make = (
+      tag: string,
+      attrs: Record<string, string>,
+      label?: string,
+    ) => {
       const el = document.createElementNS(ns, tag);
       for (const [key, value] of Object.entries(attrs)) el.setAttribute(key, value);
       if (label !== undefined) el.textContent = label;
@@ -68,12 +86,17 @@ export class FlowGraph {
       const ux = dx / len, uy = dy / len;
       const sx = x1 + ux * 29, sy = y1 + uy * 29;
       const ex = x2 - ux * 34, ey = y2 - uy * 34;
+      // 让边标签偏离线段，避免遮挡箭头。
       const offset = e.from === 'A' && e.to === 'D' ? -17 : -14;
       const mx = (sx + ex) / 2 - uy * offset;
       const my = (sy + ey) / 2 + ux * offset;
       const active = this.selected?.type === 'edge' && this.selected.index === i;
       const group = make('g', { class: 'flowgraph-interactive', role: 'button', tabindex: '0', 'aria-label': `${e.from} 到 ${e.to}，流量 ${e.flow}，容量 ${e.cap}` });
-      group.append(make('line', { x1: String(sx), y1: String(sy), x2: String(ex), y2: String(ey), stroke: 'transparent', 'stroke-width': '24' }));
+      // 透明粗线扩大鼠标命中区域，不改变可见边的粗细。
+      group.append(make('line', {
+        x1: String(sx), y1: String(sy), x2: String(ex), y2: String(ey),
+        stroke: 'transparent', 'stroke-width': '24',
+      }));
       group.append(make('line', { x1: String(sx), y1: String(sy), x2: String(ex), y2: String(ey), stroke: active ? '#fbbf24' : '#64748b', 'stroke-width': active ? '5' : '3', 'marker-end': 'url(#flowgraph-arrow)', 'pointer-events': 'none' }));
       group.append(make('text', { x: String(mx), y: String(my), 'text-anchor': 'middle', class: 'edge-label', 'pointer-events': 'none' }, `${e.flow} / ${e.cap}`));
       group.addEventListener('mouseenter', () => this.onHover?.({ type: 'edge', index: i }));
