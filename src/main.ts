@@ -329,13 +329,219 @@ function showValidityPreview() {
 }
 
 function showGreedyPreview() {
-  app.innerHTML = `<main class="screen lesson"><div class="lesson-content">
-    <button id="back-button" class="text-button">← 返回上一节</button>
-    <div class="lesson-meta">第二章 · 为什么不能直接贪心？ · 预览</div>
-    <h1>每次尽可能多地发送流量，一定正确吗？</h1>
-    <p class="question">下一章，我们将继续使用刚才的网络，尝试自己选择路径。</p>
-  </div></main>`;
-  document.querySelector<HTMLButtonElement>('#back-button')!.addEventListener('click', showValidityPreview);
+  // 第四节先只允许沿正向边增广；反向边留给下一节发现。
+  const base = [
+    { from: 'S', to: 'A', cap: 5 }, { from: 'S', to: 'B', cap: 4 },
+    { from: 'A', to: 'C', cap: 3 }, { from: 'B', to: 'D', cap: 4 },
+    { from: 'A', to: 'D', cap: 3 }, { from: 'C', to: 'T', cap: 3 },
+    { from: 'D', to: 'T', cap: 5 },
+  ];
+  type Stage = 'explore' | 'challenge' | 'reflection';
+  let stage: Stage = 'explore';
+  let flows = base.map(() => 0);
+  let path: number[] = [];
+  let history: number[][] = [];
+  let attempts = 0;
+  let hasCompared = false;
+
+  app.innerHTML = `
+    <main class="screen lesson"><div class="lesson-content">
+      <button id="back-button" class="text-button">← 返回上一节</button>
+      <div class="lesson-meta">第二章 · 贪心的陷阱 / 04</div>
+      <h1>每次沿一条路径尽可能多地发送流量，就一定能得到最大流吗？</h1>
+      <p class="question">依次点击从 S 出发的有向边，组成一条到 T 的路径。试着选择不同的路径顺序。</p>
+      <div class="graph-workspace">
+        <div class="graph-panel"><svg id="greedy-graph" class="flow-graph" viewBox="0 0 650 360" aria-label="可选择边的网络流实验图"></svg></div>
+        <aside class="graph-info">
+          <h2>路径实验台</h2>
+          <p id="greedy-mode">自由探索：你会先选择哪条路径？</p>
+          <h3>当前总流量</h3><p id="greedy-total" class="greedy-total">0 / 8</p>
+          <h3>正在选择的路径</h3><p id="greedy-path">从 S 开始，点击一条边。</p>
+          <p id="greedy-bottleneck">瓶颈容量：—</p>
+          <p id="greedy-preview" class="graph-keyboard-tip">鼠标悬停查看边；Tab、Enter 或空格也可选择。</p>
+        </aside>
+      </div>
+      <div class="lesson-actions">
+        <button id="greedy-augment" class="primary-button" disabled>沿路径增广</button>
+        <button id="greedy-undo-path" class="secondary-button">撤销选边</button>
+        <button id="greedy-clear-path" class="secondary-button">清空路径</button>
+        <button id="greedy-undo-flow" class="secondary-button">撤销上次增广</button>
+        <button id="greedy-reset" class="secondary-button">重置网络</button>
+      </div>
+      <section id="greedy-prompt" class="discovery greedy-prompt" aria-live="polite">
+        <strong>实验提示</strong><p id="greedy-message">先试着找一条 S 到 T 的路径。每条边显示「当前流量 / 容量」。</p>
+        <button id="greedy-challenge" class="primary-button" hidden>挑战另一种路径顺序 →</button>
+        <button id="greedy-reflect" class="primary-button" hidden>分析这次阻塞 →</button>
+      </section>
+      <section class="history-panel"><h2>探索记录</h2><ol id="greedy-history" aria-live="polite"></ol></section>
+      <div id="greedy-summary" class="discovery" hidden>
+        <strong>发现：路径顺序会影响正向贪心的结果</strong>
+        <p>先走 S → A → D → T 并发送 3，再沿剩余正向路径发送，最终只能得到 7；但其他顺序可以达到 8。</p>
+        <p>如果不把流量全部清零，能不能只调整 A → D 上原先发送的流量？下一节将探索这个问题。</p>
+        <button id="greedy-retry" class="secondary-button">再自由尝试一次</button>
+      </div>
+    </div></main>
+  `;
+
+  const byId = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
+  const svg = byId<SVGSVGElement>('greedy-graph');
+  const mode = byId<HTMLElement>('greedy-mode');
+  const total = byId<HTMLElement>('greedy-total');
+  const pathText = byId<HTMLElement>('greedy-path');
+  const bottleneckText = byId<HTMLElement>('greedy-bottleneck');
+  const preview = byId<HTMLElement>('greedy-preview');
+  const message = byId<HTMLElement>('greedy-message');
+  const augment = byId<HTMLButtonElement>('greedy-augment');
+  const challenge = byId<HTMLButtonElement>('greedy-challenge');
+  const reflect = byId<HTMLButtonElement>('greedy-reflect');
+  const summary = byId<HTMLElement>('greedy-summary');
+  const log = byId<HTMLOListElement>('greedy-history');
+
+  function note(value: string) {
+    const li = document.createElement('li');
+    li.textContent = value;
+    log.append(li);
+  }
+  function currentNode() {
+    return path.length ? base[path[path.length - 1]].to : 'S';
+  }
+  function remaining(i: number) {
+    return base[i].cap - flows[i];
+  }
+  function maxAdd() {
+    return path.length ? Math.min(...path.map(remaining)) : 0;
+  }
+  function flowValue() {
+    return flows[0] + flows[1];
+  }
+  function canExtend() {
+    const visited = new Set(['S', ...path.map(i => base[i].to)]);
+    return base.some((e, i) => e.from === currentNode() && remaining(i) > 0 && !visited.has(e.to));
+  }
+  function hasForwardPath() {
+    function dfs(node: string, seen: Set<string>): boolean {
+      if (node === 'T') return true;
+      return base.some((e, i) => e.from === node && remaining(i) > 0 &&
+        !seen.has(e.to) && dfs(e.to, new Set([...seen, e.to])));
+    }
+    return dfs('S', new Set(['S']));
+  }
+  const graph = new FlowGraph(svg, selection => {
+    if (selection?.type !== 'edge') return;
+    const i = selection.index;
+    const edge = base[i];
+    if (currentNode() === 'T') {
+      message.textContent = '路径已经到达 T，请先增广或撤销选边。';
+    } else if (edge.from !== currentNode()) {
+      message.textContent = `路径必须从 ${currentNode()} 接着走。请选择从该节点出发的边。`;
+    } else if (remaining(i) <= 0) {
+      message.textContent = '这条边已经满载，无法继续沿正向增广。';
+    } else if (path.some(j => base[j].from === edge.to) || edge.to === 'S') {
+      message.textContent = '这次实验只选择不重复节点的简单路径。';
+    } else if (stage === 'challenge' && path.length === 0 && i !== 0) {
+      message.textContent = '本轮先尝试 S → A → D → T。请从 S → A 开始。';
+    } else if (stage === 'challenge' && path.length === 1 && i !== 4) {
+      message.textContent = '试着先选择斜向的 A → D。';
+    } else if (stage === 'challenge' && path.length === 2 && i !== 6) {
+      message.textContent = '现在从 D 走向 T。';
+    } else {
+      path.push(i);
+      message.textContent = '路径已更新。观察右侧的瓶颈容量。';
+    }
+    render();
+  }, selection => {
+    if (selection?.type === 'edge') {
+      const e = base[selection.index];
+      preview.textContent = `${e.from} → ${e.to}：${flows[selection.index]} / ${e.cap}，剩余 ${remaining(selection.index)}`;
+    } else {
+      preview.textContent = '鼠标悬停查看边；Tab、Enter 或空格也可选择。';
+    }
+  });
+
+  function render() {
+    graph.setEdges(base.map((e, i) => ({ ...e, flow: flows[i] })));
+    // FlowGraph 的边元素按 base 的顺序绘制。
+    svg.querySelectorAll<SVGGElement>('g.flowgraph-interactive').forEach((el, i) => {
+      if (path.includes(i)) el.classList.add('greedy-path-edge');
+    });
+    const nodes = ['S', ...path.map(i => base[i].to)];
+    pathText.textContent = nodes.join(' → ');
+    bottleneckText.textContent = path.length ? `瓶颈容量：${maxAdd()}` : '瓶颈容量：—';
+    total.textContent = `${flowValue()} / 8`;
+    augment.disabled = currentNode() !== 'T' || maxAdd() <= 0;
+    mode.textContent = stage === 'challenge'
+      ? '反例挑战：先选择 S → A → D → T。'
+      : stage === 'reflection' ? '比较两种路径顺序。' : '自由探索：你会先选择哪条路径？';
+    challenge.hidden = stage !== 'explore' || !hasCompared;
+    reflect.hidden = stage !== 'challenge' || hasForwardPath() || flowValue() === 0;
+    summary.hidden = stage !== 'reflection';
+  }
+  function reset(nextStage: Stage) {
+    stage = nextStage;
+    flows = base.map(() => 0);
+    path = [];
+    history = [];
+    attempts = 0;
+    hasCompared = false;
+    message.textContent = nextStage === 'challenge'
+      ? '假设遍历顺序恰好先找到了 S → A → D → T。请按顺序选择这三条边并增广。'
+      : '从 S 出发，点击边构造一条路径。';
+    render();
+  }
+  augment.addEventListener('click', () => {
+    if (currentNode() !== 'T' || maxAdd() <= 0) return;
+    const amount = maxAdd();
+    const label = ['S', ...path.map(i => base[i].to)].join(' → ');
+    history.push([...flows]);
+    path.forEach(i => { flows[i] += amount; });
+    path = [];
+    attempts++;
+    note(`第 ${attempts} 次：${label}，发送 ${amount}，总流量 ${flowValue()}。`);
+    if (flowValue() === 8 && stage === 'explore') {
+      hasCompared = true;
+      message.textContent = '你达到了流量 8！如果算法先选择斜向边 A → D，还能得到相同结果吗？点击下面的挑战按钮试试。';
+    } else if (!hasForwardPath() && stage === 'explore') {
+      hasCompared = true;
+      message.textContent = `目前总流量为 ${flowValue()}，已找不到正向增广路径。换一种路径顺序会怎样？`;
+    } else if (!hasForwardPath() && stage === 'challenge') {
+      message.textContent = `正向路径已全部阻塞，总流量为 ${flowValue()}。但你刚才可能已经得到过 8。为什么会这样？`;
+    } else {
+      message.textContent = '增广完成。继续寻找下一条可用路径。';
+    }
+    render();
+  });
+  byId<HTMLButtonElement>('greedy-undo-path').addEventListener('click', () => {
+    path.pop();
+    message.textContent = '已撤销最后选择的一条边。';
+    render();
+  });
+  byId<HTMLButtonElement>('greedy-clear-path').addEventListener('click', () => {
+    path = [];
+    render();
+  });
+  byId<HTMLButtonElement>('greedy-undo-flow').addEventListener('click', () => {
+    const previous = history.pop();
+    if (!previous) return;
+    flows = previous;
+    path = [];
+    hasCompared = false;
+    message.textContent = '已撤销上一次增广。';
+    note('撤销了一次增广。');
+    render();
+  });
+  byId<HTMLButtonElement>('greedy-reset').addEventListener('click', () => reset(stage));
+  challenge.addEventListener('click', () => {
+    reset('challenge');
+    note('开始反例实验：先选择 S → A → D → T。');
+  });
+  reflect.addEventListener('click', () => {
+    stage = 'reflection';
+    message.textContent = '两次实验使用同一张网络，却因为路径顺序不同得到不同结果。';
+    render();
+  });
+  byId<HTMLButtonElement>('greedy-retry').addEventListener('click', () => reset('explore'));
+  byId<HTMLButtonElement>('back-button').addEventListener('click', showValidityPreview);
+  render();
 }
 
 showWelcome();
