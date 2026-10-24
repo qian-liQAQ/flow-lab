@@ -229,10 +229,6 @@ function showValidityPreview() {
     { from: 'A', to: 'D', cap: 3 }, { from: 'C', to: 'T', cap: 3 },
     { from: 'D', to: 'T', cap: 5 },
   ];
-  const positions: Record<string, [number, number]> = {
-    S: [70, 180], A: [230, 80], B: [230, 280],
-    C: [420, 80], D: [420, 280], T: [575, 180],
-  };
   let edges: Edge[] = [];
   let category = '';
   let attempts = 0;
@@ -422,10 +418,6 @@ function showGreedyPreview() {
   function flowValue() {
     return flows[0] + flows[1];
   }
-  function canExtend() {
-    const visited = new Set(['S', ...path.map(i => base[i].to)]);
-    return base.some((e, i) => e.from === currentNode() && remaining(i) > 0 && !visited.has(e.to));
-  }
   function hasForwardPath() {
     function dfs(node: string, seen: Set<string>): boolean {
       if (node === 'T') return true;
@@ -570,7 +562,6 @@ function showReverseLesson() {
   let revealed = false;
   let finished = false;
   // 下标 7 专门代表残量反向边 D→A，实际修改的是原边 A→D。
-  const route = [1, 3, 7, 2, 5];
   const ends = [
     ...base.map(e => ({ from: e.from, to: e.to })),
     { from: 'D', to: 'A' },
