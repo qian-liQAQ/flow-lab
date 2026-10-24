@@ -74,7 +74,7 @@ export function showLayeredGraphLesson(app: HTMLDivElement, back: () => void) {
         <p>这条规则不区分原来的正向边和反向边。分层图不是新建的原网络，而是<strong>当前残量网络的一部分</strong>。沿它从 S 到 T 走，每一步都恰好进入下一层，所以走出的路径一定是当前最短增广路。</p>
         <p>接下来要解决的问题是：在这张分层图里，能否连续找到不止一条增广路？</p>
       </section>
-      <div class="lesson-actions"><button id="lg-next" class="secondary-button" disabled>下一节：在分层图中寻找阻塞流 →</button></div>
+      <div class="lesson-actions"><button id="lg-next" class="secondary-button">下一节：在分层图中寻找阻塞流 →</button></div>
     </div></main>
   `;
 
@@ -220,7 +220,6 @@ export function showLayeredGraphLesson(app: HTMLDivElement, back: () => void) {
     get<HTMLElement>('lg-title').textContent = '分层图 · 只保留向下一层的边';
     get<HTMLElement>('lg-subtitle').textContent = '不满足层数 +1 的边已变灰';
     get<HTMLButtonElement>('lg-filter').disabled = true;
-    get<HTMLButtonElement>('lg-next').disabled = false;
     get<HTMLElement>('lg-summary').hidden = false;
     message.textContent = '看图中保留下来的彩色边：沿它们从 S 出发，每一步都会进入下一层，所以到 T 的路径长度固定为 5。';
     draw();
