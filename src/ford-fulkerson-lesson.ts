@@ -340,6 +340,7 @@ export function showFordFulkersonLesson(app: HTMLDivElement, back: () => void) {
     get<HTMLElement>('ff-path').textContent = pending ? route(pending) : searching ? '搜索中…' : completed ? '无增广路' : '尚未寻找';
     findButton.disabled = searching || pending !== null || completed;
     get<HTMLButtonElement>('ff-step').disabled = !searching;
+    get<HTMLButtonElement>('ff-step').textContent = searching && traceIndex === trace.length - 1 ? '确认搜索结果 →' : '下一步搜索 →';
     applyButton.disabled = pending === null;
     get<HTMLElement>('ff-summary').hidden = !completed;
     get<HTMLElement>('ff-code-section').hidden = !completed;
@@ -389,17 +390,26 @@ export function showFordFulkersonLesson(app: HTMLDivElement, back: () => void) {
   });
   get<HTMLButtonElement>('ff-step').addEventListener('click', () => {
     if (!searching) return;
-    traceIndex++;
-    const step = trace[traceIndex];
-    message.textContent = step.description;
+    // 最后一条边先独立展示为橙色；再按一次才确认整条增广路。
     if (traceIndex === trace.length - 1) {
       pending = foundPath();
       searching = false;
+      traceIndex = -1;
       if (!pending) {
         finish();
         return;
       }
       message.textContent = `搜索结束：${route(pending)}，瓶颈为 ${amount(pending)}。现在执行增广。`;
+      render();
+      return;
+    }
+    traceIndex++;
+    const step = trace[traceIndex];
+    message.textContent = step.description;
+    if (traceIndex === trace.length - 1) {
+      message.textContent += step.visited.includes('T')
+        ? ' 已发现终点 T；再点击一次确认整条增广路。'
+        : ' 搜索已遍历所有可达节点；再点击一次确认搜索结果。';
     }
     render();
   });
