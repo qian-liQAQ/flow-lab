@@ -136,3 +136,16 @@ button { font: inherit; cursor: pointer; }
 .flowgraph-interactive { cursor: pointer; outline: none; }
 .flowgraph-interactive:focus-visible { filter: drop-shadow(0 0 6px #38bdf8); }
 .flowgraph-interactive:hover { opacity: .85; }
+
+/* Graph inspector layout and hover feedback */
+.lesson-content:has(.graph-workspace) { width: min(100%, 1120px); }
+.graph-workspace { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 18px; align-items: stretch; margin: 26px 0; }
+.graph-workspace .graph-panel { margin: 0; align-self: start; }
+.graph-info { border: 1px solid #334155; border-radius: 18px; background: #142235; padding: 20px; color: #cbd5e1; line-height: 1.65; }
+.graph-info h2 { margin: 0 0 12px; font-size: 19px; color: #f8fafc; }
+.graph-info h3 { margin: 24px 0 8px; font-size: 15px; color: #7dd3fc; }
+.graph-info p { overflow-wrap: anywhere; }
+.graph-keyboard-tip { margin-top: 26px; padding-top: 16px; border-top: 1px solid #334155; font-size: 13px; color: #94a3b8; }
+.flowgraph-interactive:hover { opacity: 1; filter: drop-shadow(0 0 9px #38bdf8); }
+.flowgraph-interactive:focus-visible { filter: drop-shadow(0 0 10px #7dd3fc); }
+@media (max-width: 760px) { .graph-workspace { grid-template-columns: 1fr; } .graph-info { padding: 16px 20px; } }
