@@ -1,11 +1,23 @@
 main{
-  background-color:#111827;
-  color:white;
-
   min-height:100vh;
 
   display:flex;
   flex-direction:column;
   justify-content:center;
   align-items:center;
+}
+body {
+  margin: 0;
+  background-color: #111827;
+  color: white;
+}
+button {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  width: 200px;
+  padding: 20px;
+  margin: 30px;
+
 }
