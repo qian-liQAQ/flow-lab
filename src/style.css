@@ -313,3 +313,19 @@ button { font: inherit; cursor: pointer; }
 .greedy-prompt .primary-button {
   margin-top: 12px;
 }
+
+/* 第五节：用虚线区分反向残量边和原图中的正向边。 */
+.reverse-edge {
+  cursor: pointer;
+  filter: drop-shadow(0 0 5px #fbbf24);
+}
+
+.reverse-edge:hover,
+.reverse-edge:focus-visible {
+  filter: drop-shadow(0 0 11px #fbbf24);
+}
+
+.reverse-edge .edge-label {
+  fill: #fbbf24;
+  font-size: 15px;
+}
