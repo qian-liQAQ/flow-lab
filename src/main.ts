@@ -126,8 +126,9 @@ function showConservationIntro() {
           <button id="check-button" class="primary-button">验证分配</button>
           <button id="hint-button" class="secondary-button">给我一点提示</button>
           <button id="explain-button" class="secondary-button">查看详细解释</button>
+          <button id="next-button" class="secondary-button">下一节：判断合法流 →</button>
         </div>
-        <p id="feedback" class="feedback" aria-live="polite">尝试不同的分配，再判断是否合理。</p>
+        <section class="history-panel" aria-label="探索记录"><h2>探索记录</h2><ol id="history" aria-live="polite"><li>尝试不同的分配，再判断是否合理。</li></ol></section>
         <div id="discovery" class="discovery" hidden>
           <p>你找到了一个可行分配！试着想想：换成另一组数字，什么条件仍然必须成立？</p>
           <button id="reveal-button" class="secondary-button">我发现规律了，查看总结</button>
@@ -142,7 +143,12 @@ function showConservationIntro() {
 
   const ab = document.querySelector<HTMLInputElement>('#ab-flow')!;
   const ac = document.querySelector<HTMLInputElement>('#ac-flow')!;
-  const feedback = document.querySelector<HTMLParagraphElement>('#feedback')!;
+  const history = document.querySelector<HTMLOListElement>('#history')!;
+  function addFeedback(message: string) {
+    const item = document.createElement('li');
+    item.textContent = message;
+    history.appendChild(item);
+  }
   const discovery = document.querySelector<HTMLDivElement>('#discovery')!;
   const summary = document.querySelector<HTMLDivElement>('#summary')!;
 
@@ -163,7 +169,7 @@ function showConservationIntro() {
       const outgoing = Number(ab.value) + Number(ac.value);
       if (outgoing === 5) {
         succeeded = true;
-        feedback.textContent = '这组分配可以成立。你能找到另一组不同的分配吗？';
+        addFeedback(`A → B = ${ab.value}，A → C = ${ac.value}：这组分配可以成立。你能找到另一组不同的分配吗？`);
         discovery.hidden = false;
         return;
       }
@@ -179,16 +185,17 @@ function showConservationIntro() {
           '试着比较 A 收到的总量和向 B、C 发送的总量。',
           'A 既不会产生流量，也不会储存流量。每一单位流量都应该有去处。',
         ];
-      feedback.textContent = hints[Math.min(attempts - 1, hints.length - 1)];
+      addFeedback(`A → B = ${ab.value}，A → C = ${ac.value}：${hints[Math.min(attempts - 1, hints.length - 1)]}`);
     });
 
   document.querySelector<HTMLButtonElement>('#hint-button')!
     .addEventListener('click', () => {
-      feedback.textContent = '分别计算进入 A 的流量与离开 A 的流量。A 能产生或储存流量吗？';
+      addFeedback('提示：分别计算进入 A 的流量与离开 A 的流量。A 能产生或储存流量吗？');
     });
   document.querySelector<HTMLButtonElement>('#explain-button')!
     .addEventListener('click', () => {
       summary.hidden = false;
+      addFeedback('已展开详细解释。');
     });
   document.querySelector<HTMLButtonElement>('#reveal-button')!
     .addEventListener('click', () => {
@@ -196,6 +203,21 @@ function showConservationIntro() {
     });
   document.querySelector<HTMLButtonElement>('#back-button')!
     .addEventListener('click', showCapacityLesson);
+  document.querySelector<HTMLButtonElement>('#next-button')!
+    .addEventListener('click', showValidityPreview);
+}
+
+function showValidityPreview() {
+  app.innerHTML = `
+    <main class="screen lesson"><div class="lesson-content">
+      <button id="back-button" class="text-button">← 返回上一节</button>
+      <div class="lesson-meta">第一章 · 什么是最大流？ / 03 · 即将推出</div>
+      <h1>怎样判断一个流是否合法？</h1>
+      <p class="question">我们已经见过容量限制和流量守恒。下一节将把这两个条件放在同一个网络中检验。</p>
+      <p class="feedback">本节正在设计中，你可以随时返回继续实验。</p>
+    </div></main>`;
+  document.querySelector<HTMLButtonElement>('#back-button')!
+    .addEventListener('click', showConservationIntro);
 }
 
 showWelcome();
