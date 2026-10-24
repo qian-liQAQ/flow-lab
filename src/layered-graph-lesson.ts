@@ -79,7 +79,7 @@ export function showLayeredGraphLesson(app: HTMLDivElement, back: () => void) {
   `;
 
   const get = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
-  const svg = document.getElementById('lg-svg') as SVGSVGElement;
+  const svg = document.querySelector<SVGSVGElement>('#lg-svg')!;
   const message = get<HTMLElement>('lg-message');
 
   function arcs(): Arc[] {
