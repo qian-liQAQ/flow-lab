@@ -135,7 +135,6 @@ button { font: inherit; cursor: pointer; }
 
 .flowgraph-interactive { cursor: pointer; outline: none; }
 .flowgraph-interactive:focus-visible { filter: drop-shadow(0 0 6px #38bdf8); }
-.flowgraph-interactive:hover { opacity: .85; }
 
 /* 七边图：左右分栏、检查器和交互高亮 */
 .lesson-content:has(.graph-workspace) {
