@@ -138,21 +138,23 @@ button { font: inherit; cursor: pointer; }
 .flowgraph-interactive:hover { opacity: .85; }
 
 /* 七边图：左右分栏、检查器和交互高亮 */
-/* Graph inspector layout and hover feedback */
 .lesson-content:has(.graph-workspace) {
   width: min(100%, 1120px);
-  }
+}
+
 .graph-workspace {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 260px;
   gap: 18px;
   align-items: stretch;
   margin: 26px 0;
-  }
+}
+
 .graph-workspace .graph-panel {
   margin: 0;
   align-self: start;
-  }
+}
+
 .graph-info {
   border: 1px solid #334155;
   border-radius: 18px;
@@ -160,39 +162,49 @@ button { font: inherit; cursor: pointer; }
   padding: 20px;
   color: #cbd5e1;
   line-height: 1.65;
-  }
+}
+
 .graph-info h2 {
   margin: 0 0 12px;
   font-size: 19px;
   color: #f8fafc;
-  }
+}
+
 .graph-info h3 {
   margin: 24px 0 8px;
   font-size: 15px;
   color: #7dd3fc;
-  }
+}
+
 .graph-info p {
   overflow-wrap: anywhere;
-  }
+}
+
+/* 键盘操作提示与视觉反馈 */
 .graph-keyboard-tip {
   margin-top: 26px;
   padding-top: 16px;
   border-top: 1px solid #334155;
   font-size: 13px;
   color: #94a3b8;
-  }
+}
+
 .flowgraph-interactive:hover {
   opacity: 1;
   filter: drop-shadow(0 0 9px #38bdf8);
-  }
+}
+
 .flowgraph-interactive:focus-visible {
   filter: drop-shadow(0 0 10px #7dd3fc);
-  }
+}
+
+/* 窄屏时将信息面板移到图的下方 */
 @media (max-width: 760px) {
   .graph-workspace {
-  grid-template-columns: 1fr;
+    grid-template-columns: 1fr;
   }
-.graph-info {
-  padding: 16px 20px;
+
+  .graph-info {
+    padding: 16px 20px;
   }
 }
