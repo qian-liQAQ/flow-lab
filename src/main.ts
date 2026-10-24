@@ -275,23 +275,6 @@ function showValidityPreview() {
       f[i]++;
     }
     edges = base.map((e, i) => ({ ...e, flow: f[i] }));
-    const parts = edges.map(e => {
-      const [x1, y1] = positions[e.from], [x2, y2] = positions[e.to];
-      const dx = x2 - x1, dy = y2 - y1, len = Math.hypot(dx, dy);
-      const ux = dx / len, uy = dy / len;
-      const sx = x1 + ux * 29, sy = y1 + uy * 29;
-      const ex = x2 - ux * 34, ey = y2 - uy * 34;
-      const offset = e.from === 'A' && e.to === 'D' ? -17 : -14;
-      const mx = (sx + ex) / 2 - uy * offset;
-      const my = (sy + ey) / 2 + ux * offset;
-      return `<line x1="${sx}" y1="${sy}" x2="${ex}" y2="${ey}" stroke="#64748b" stroke-width="3" marker-end="url(#valid-arrow)"/>
-        <text x="${mx}" y="${my}" text-anchor="middle" class="edge-label">${e.flow} / ${e.cap}</text>`;
-    });
-    const nodes = Object.entries(positions).map(([name, [x, y]]) =>
-      `<circle cx="${x}" cy="${y}" r="27" fill="#1e293b" stroke="#38bdf8" stroke-width="2"/>
-      <text x="${x}" y="${y + 8}" text-anchor="middle" class="node-label">${name}</text>`
-    );
-    svg.innerHTML = `<defs><marker id="valid-arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#94a3b8"/></marker></defs>${parts.join('')}${nodes.join('')}`;
     const graph = new FlowGraph(svg, selection => {
       if (!selection) return;
       if (selection.type === 'edge') {
