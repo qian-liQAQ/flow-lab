@@ -383,7 +383,7 @@ function showGreedyPreview() {
     </div></main>
   `;
 
-  const byId = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
+  const byId = <T extends Element>(id: string) => document.getElementById(id) as unknown as T;
   const svg = byId<SVGSVGElement>('greedy-graph');
   const mode = byId<HTMLElement>('greedy-mode');
   const total = byId<HTMLElement>('greedy-total');
@@ -438,11 +438,11 @@ function showGreedyPreview() {
       message.textContent = '这条边已经满载，无法继续沿正向增广。';
     } else if (path.some(j => base[j].from === edge.to) || edge.to === 'S') {
       message.textContent = '这次实验只选择不重复节点的简单路径。';
-    } else if (stage === 'challenge' && path.length === 0 && i !== 0) {
+    } else if (stage === 'challenge' && history.length === 0 && path.length === 0 && i !== 0) {
       message.textContent = '本轮先尝试 S → A → D → T。请从 S → A 开始。';
-    } else if (stage === 'challenge' && path.length === 1 && i !== 4) {
+    } else if (stage === 'challenge' && history.length === 0 && path.length === 1 && i !== 4) {
       message.textContent = '试着先选择斜向的 A → D。';
-    } else if (stage === 'challenge' && path.length === 2 && i !== 6) {
+    } else if (stage === 'challenge' && history.length === 0 && path.length === 2 && i !== 6) {
       message.textContent = '现在从 D 走向 T。';
     } else {
       path.push(i);
