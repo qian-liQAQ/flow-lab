@@ -2,6 +2,7 @@ import { FLOW_EDGES } from './flow-graph';
 
 type Arc = { from: string; to: string; cap: number; index: number; reverse: boolean };
 type Strategy = 'dfs' | 'bfs';
+type SearchStep = { current: string; explored: Arc | null; visited: string[]; frontier: string[]; path: Arc[]; description: string };
 const positions: Record<string, [number, number]> = {
   S: [70, 180], A: [230, 80], B: [230, 280],
   C: [420, 80], D: [420, 280], T: [575, 180],
@@ -125,6 +126,9 @@ export function showFordFulkersonLesson(app: HTMLDivElement, back: () => void) {
   let rounds = 0;
   let completed = false;
   let codeTab: Strategy = 'dfs';
+  let trace: SearchStep[] = [];
+  let traceIndex = -1;
+  let searching = false;
 
   app.innerHTML = `
     <main class="screen lesson"><div class="lesson-content ff-content">
@@ -136,7 +140,7 @@ export function showFordFulkersonLesson(app: HTMLDivElement, back: () => void) {
         <section class="graph-panel ff-graph">
           <div class="ff-graph-header"><strong>残量网络</strong></div>
           <svg id="ff-svg" class="flow-graph" viewBox="0 0 650 360" aria-label="Ford–Fulkerson 算法网络图"></svg>
-          <p class="ff-legend">蓝色实线：正向残量边　黄色虚线：反向残量边　白色：本次增广路</p>
+          <p class="ff-legend">蓝色实线：正向残量边　黄色虚线：反向残量边　橙色：正在探索　白色：已找到的增广路</p>
         </section>
         <aside class="graph-info ff-console">
           <h2>算法控制台</h2>
@@ -145,9 +149,13 @@ export function showFordFulkersonLesson(app: HTMLDivElement, back: () => void) {
           <p class="ff-metric">当前流量 <strong id="ff-total">0</strong></p>
           <p>增广次数：<strong id="ff-rounds">0</strong></p>
           <p>当前路径：<span id="ff-path">尚未寻找</span></p>
+          <p>搜索位置：<strong id="ff-current">—</strong></p>
+          <p>待处理节点：<span id="ff-frontier">—</span></p>
+          <p>已访问：<span id="ff-visited">—</span></p>
           <p>瓶颈容量：<strong id="ff-bottleneck">—</strong></p>
           <div class="ff-console-buttons">
-            <button id="ff-find" class="primary-button">寻找增广路</button>
+            <button id="ff-find" class="primary-button">开始寻找增广路</button>
+            <button id="ff-step" class="secondary-button" disabled>下一步搜索 →</button>
             <button id="ff-apply" class="primary-button" disabled>执行本次增广</button>
             <button id="ff-reset" class="secondary-button">重置并比较</button>
           </div>
@@ -195,30 +203,75 @@ export function showFordFulkersonLesson(app: HTMLDivElement, back: () => void) {
     });
     return result;
   }
-  function search(): Arc[] | null {
+  function buildTrace(): SearchStep[] {
     const edges = arcs();
+    const steps: SearchStep[] = [];
     const seen = new Set<string>(['S']);
     const parent = new Map<string, Arc>();
-    const frontier = ['S'];
-    while (frontier.length) {
-      const u = strategy === 'bfs' ? frontier.shift()! : frontier.pop()!;
-      if (u === 'T') break;
-      for (const e of edges) {
-        if (e.from !== u || seen.has(e.to)) continue;
-        seen.add(e.to);
-        parent.set(e.to, e);
-        frontier.push(e.to);
-        if (strategy === 'dfs' && e.to === 'T') break;
+    const snapshot = (current: string, explored: Arc | null, frontier: string[], description: string) => {
+      const path: Arc[] = [];
+      for (let at = current; at !== 'S' && parent.has(at);) {
+        const edge = parent.get(at)!;
+        path.unshift(edge);
+        at = edge.from;
       }
+      steps.push({ current, explored, visited: [...seen], frontier: [...frontier], path, description });
+    };
+    if (strategy === 'bfs') {
+      const queue = ['S'];
+      snapshot('S', null, queue, 'BFS 从 S 开始。队列先进先出，逐层扩展。');
+      while (queue.length && !seen.has('T')) {
+        const u = queue.shift()!;
+        snapshot(u, null, queue, `取出队首 ${u}，检查它的出边。`);
+        for (const edge of edges) {
+          if (edge.from !== u || seen.has(edge.to)) continue;
+          seen.add(edge.to);
+          parent.set(edge.to, edge);
+          queue.push(edge.to);
+          snapshot(edge.to, edge, queue, `发现 ${edge.from} → ${edge.to}，加入队尾。`);
+          if (edge.to === 'T') break;
+        }
+      }
+    } else {
+      const stack: string[] = [];
+      const dfs = (u: string): boolean => {
+        stack.push(u);
+        snapshot(u, null, stack, `DFS 进入 ${u}，沿一条分支继续深入。`);
+        if (u === 'T') return true;
+        for (const edge of edges) {
+          if (edge.from !== u || seen.has(edge.to)) continue;
+          seen.add(edge.to);
+          parent.set(edge.to, edge);
+          snapshot(edge.to, edge, [...stack, edge.to], `沿 ${edge.from} → ${edge.to} 深入搜索。`);
+          if (dfs(edge.to)) return true;
+        }
+        stack.pop();
+        snapshot(u, null, stack, `从 ${u} 回溯，尝试其他分支。`);
+        return false;
+      };
+      dfs('S');
     }
-    if (!parent.has('T')) return null;
-    const path: Arc[] = [];
+    if (!parent.has('T')) {
+      snapshot('S', null, [], '所有可达节点已搜索完毕，仍无法到达 T。');
+    }
+    return steps;
+  }
+  function foundPath(): Arc[] | null {
+    const final = trace[trace.length - 1];
+    if (!final || !final.visited.includes('T')) return null;
+    // DFS 的最后一步位于 T；BFS 最后一次发现的边也指向 T。
+    const parent = new Map<string, Arc>();
+    for (const step of trace) {
+      if (step.explored) parent.set(step.explored.to, step.explored);
+    }
+    const result: Arc[] = [];
     for (let at = 'T'; at !== 'S';) {
-      const e = parent.get(at)!;
-      path.push(e);
-      at = e.from;
+      const edge = parent.get(at);
+      if (!edge) return null;
+      result.unshift(edge);
+      at = edge.from;
     }
-    return path.reverse();
+    return result;
   }
   function amount(path: Arc[]) {
     return Math.min(...path.map(e => e.cap));
@@ -232,7 +285,7 @@ export function showFordFulkersonLesson(app: HTMLDivElement, back: () => void) {
   function drawResidual() {
     svg.replaceChildren();
     const defs = svgEl('defs', {});
-    for (const [id, color] of [['ff-arrow-f', '#38bdf8'], ['ff-arrow-r', '#fbbf24'], ['ff-arrow-selected', '#f8fafc']]) {
+    for (const [id, color] of [['ff-arrow-f', '#38bdf8'], ['ff-arrow-r', '#fbbf24'], ['ff-arrow-selected', '#f8fafc'], ['ff-arrow-explore', '#fb923c']]) {
       const marker = svgEl('marker', { id, markerWidth: '10', markerHeight: '10', refX: '8', refY: '3', orient: 'auto' });
       marker.append(svgEl('path', { d: 'M0,0 L0,6 L9,3 z', fill: color }));
       defs.append(marker);
@@ -249,10 +302,10 @@ export function showFordFulkersonLesson(app: HTMLDivElement, back: () => void) {
       const active = pending?.some(p => p.index === edge.index && p.reverse === edge.reverse) ?? false;
       const path = svgEl('path', {
         d: `M ${sx} ${sy} Q ${cx} ${cy} ${ex} ${ey}`,
-        fill: 'none', stroke: active ? '#f8fafc' : edge.reverse ? '#fbbf24' : '#38bdf8',
-        'stroke-width': active ? '5' : '3',
+        fill: 'none', stroke: active ? '#f8fafc' : exploring ? '#fb923c' : edge.reverse ? '#fbbf24' : '#38bdf8',
+        'stroke-width': active || exploring ? '5' : '3',
         ...(edge.reverse ? { 'stroke-dasharray': '8 6' } : {}),
-        'marker-end': `url(#ff-arrow-${active ? 'selected' : edge.reverse ? 'r' : 'f'})`,
+        'marker-end': `url(#ff-arrow-${active ? 'selected' : exploring ? 'explore' : edge.reverse ? 'r' : 'f'})`,
       });
       svg.append(path);
       svg.append(svgEl('text', {
@@ -262,7 +315,9 @@ export function showFordFulkersonLesson(app: HTMLDivElement, back: () => void) {
       }, String(edge.cap)));
     }
     for (const [id, [x, y]] of Object.entries(positions)) {
-      svg.append(svgEl('circle', { cx: String(x), cy: String(y), r: '27', fill: '#1e293b', stroke: '#38bdf8', 'stroke-width': '2' }));
+      const current = step?.current === id;
+      const visited = step?.visited.includes(id);
+      svg.append(svgEl('circle', { cx: String(x), cy: String(y), r: '27', fill: current ? '#9a3412' : visited ? '#164e63' : '#1e293b', stroke: current ? '#fb923c' : '#38bdf8', 'stroke-width': current ? '4' : '2' }));
       svg.append(svgEl('text', { x: String(x), y: String(y + 8), 'text-anchor': 'middle', class: 'node-label' }, id));
     }
   }
@@ -272,7 +327,13 @@ export function showFordFulkersonLesson(app: HTMLDivElement, back: () => void) {
     get<HTMLElement>('ff-rounds').textContent = String(rounds);
     get<HTMLElement>('ff-path').textContent = pending ? route(pending) : completed ? '无增广路' : '尚未寻找';
     get<HTMLElement>('ff-bottleneck').textContent = pending ? String(amount(pending)) : '—';
-    findButton.disabled = pending !== null || completed;
+    const step = searching && traceIndex >= 0 ? trace[traceIndex] : null;
+    get<HTMLElement>('ff-current').textContent = step?.current ?? '—';
+    get<HTMLElement>('ff-frontier').textContent = step ? (step.frontier.join(' → ') || '空') : '—';
+    get<HTMLElement>('ff-visited').textContent = step ? step.visited.join('、') : '—';
+    get<HTMLElement>('ff-path').textContent = pending ? route(pending) : searching ? '搜索中…' : completed ? '无增广路' : '尚未寻找';
+    findButton.disabled = searching || pending !== null || completed;
+    get<HTMLButtonElement>('ff-step').disabled = !searching;
     applyButton.disabled = pending === null;
     get<HTMLElement>('ff-summary').hidden = !completed;
     get<HTMLElement>('ff-code-section').hidden = !completed;
@@ -300,6 +361,9 @@ export function showFordFulkersonLesson(app: HTMLDivElement, back: () => void) {
   function reset() {
     flows = FLOW_EDGES.map(() => 0);
     pending = null;
+    searching = false;
+    trace = [];
+    traceIndex = -1;
     rounds = 0;
     completed = false;
     history.replaceChildren();
@@ -307,9 +371,28 @@ export function showFordFulkersonLesson(app: HTMLDivElement, back: () => void) {
     render();
   }
   findButton.addEventListener('click', () => {
-    pending = search();
-    if (!pending) { finish(); return; }
-    message.textContent = `找到路径 ${route(pending)}，瓶颈为 ${amount(pending)}。下一步应该怎样更新正反向残量容量？`;
+    trace = buildTrace();
+    traceIndex = -1;
+    searching = true;
+    message.textContent = strategy === 'dfs'
+      ? 'DFS 会先沿当前分支深入，走不通时回溯。逐步观察橙色边与当前节点。'
+      : 'BFS 使用队列，先访问距离 S 较近的节点。逐步观察待处理队列。';
+    render();
+  });
+  get<HTMLButtonElement>('ff-step').addEventListener('click', () => {
+    if (!searching) return;
+    traceIndex++;
+    const step = trace[traceIndex];
+    message.textContent = step.description;
+    if (traceIndex === trace.length - 1) {
+      pending = foundPath();
+      searching = false;
+      if (!pending) {
+        finish();
+        return;
+      }
+      message.textContent = `搜索结束：${route(pending)}，瓶颈为 ${amount(pending)}。现在执行增广。`;
+    }
     render();
   });
   applyButton.addEventListener('click', () => {
