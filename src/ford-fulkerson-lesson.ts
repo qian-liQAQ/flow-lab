@@ -1,3 +1,4 @@
+import { showEdmondsKarpLesson } from './edmonds-karp-lesson';
 import { FLOW_EDGES } from './flow-graph';
 
 type Arc = { from: string; to: string; cap: number; index: number; reverse: boolean };
@@ -184,7 +185,7 @@ export function showFordFulkersonLesson(app: HTMLDivElement, back: () => void) {
         <pre class="ff-code"><code id="ff-code"></code></pre>
         <p class="ff-code-tip">代码为可复用的算法类；调用时先构造对象、添加边，再调用 max_flow(s, t)。顶点编号从 0 开始。</p>
       </section>
-      <div class="lesson-actions"><button id="ff-next" class="secondary-button">下一节：Edmonds–Karp（即将开放）→</button></div>
+      <div class="lesson-actions"><button id="ff-next" class="secondary-button">下一节：Edmonds–Karp →</button></div>
     </div></main>
   `;
 
@@ -441,10 +442,7 @@ export function showFordFulkersonLesson(app: HTMLDivElement, back: () => void) {
       button.textContent = '复制失败，请手动选择';
     }
   });
-  get<HTMLButtonElement>('ff-next').addEventListener('click', () => {
-    message.textContent = '下一节将讨论 Edmonds–Karp 为什么能保证多项式时间复杂度。';
-    message.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  });
+  get<HTMLButtonElement>('ff-next').addEventListener('click', () => showEdmondsKarpLesson(app, () => showFordFulkersonLesson(app, back)));
   get<HTMLButtonElement>('ff-back').addEventListener('click', back);
   renderCode();
   render();
