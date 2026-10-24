@@ -132,3 +132,7 @@ button { font: inherit; cursor: pointer; }
 }
 .discovery[hidden] { display: none; }
 .discovery p { color: #cbd5e1; }
+
+.flowgraph-interactive { cursor: pointer; outline: none; }
+.flowgraph-interactive:focus-visible { filter: drop-shadow(0 0 6px #38bdf8); }
+.flowgraph-interactive:hover { opacity: .85; }
