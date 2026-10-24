@@ -20,7 +20,6 @@ export function showDinicIntroLesson(app: HTMLDivElement, back: () => void) {
   let levels: Map<string, number> | null = null;
   let phase = 0;
   let phaseCount = 0;
-  let augmentCount = 0;
   let route: Arc[] = [];
   let done = false;
   let blocking = false;
@@ -277,7 +276,6 @@ export function showDinicIntroLesson(app: HTMLDivElement, back: () => void) {
     const delta = bottle();
     const selected = [...route];
     for (const e of selected) flows[e.index] += e.reverse ? -delta : delta;
-    augmentCount++;
     phaseCount++;
     const li = document.createElement('li');
     li.textContent = `第 ${phase} 次分层，增广 ${phaseCount}：${pathText(selected)}，瓶颈 ${delta}，总流量 ${total()}。`;
@@ -328,7 +326,6 @@ export function showDinicIntroLesson(app: HTMLDivElement, back: () => void) {
     levels = null;
     phase = 0;
     phaseCount = 0;
-    augmentCount = 0;
     route = [];
     done = false;
     blocking = false;
