@@ -219,17 +219,26 @@ export function showFordFulkersonLesson(app: HTMLDivElement, back: () => void) {
     };
     if (strategy === 'bfs') {
       const queue = ['S'];
+      const depth = new Map<string, number>([['S', 0]]);
+      let targetDepth = Infinity;
       snapshot('S', null, queue, 'BFS 从 S 开始。队列先进先出，逐层扩展。');
-      while (queue.length && !seen.has('T')) {
+      // 展示发现 T 的这一层剩余节点的出边，便于比较 C→T 和 D→T。
+      // parent[T] 只在第一次发现 T 时记录，仍然只选择一条最短增广路。
+      while (queue.length && depth.get(queue[0])! < targetDepth) {
         const u = queue.shift()!;
         snapshot(u, null, queue, `取出队首 ${u}，检查它的出边。`);
         for (const edge of edges) {
-          if (edge.from !== u || seen.has(edge.to)) continue;
+          if (edge.from !== u) continue;
+          if (seen.has(edge.to)) {
+            snapshot(u, edge, queue, `检查 ${edge.from} → ${edge.to}：${edge.to} 已访问，不重复入队。`);
+            continue;
+          }
           seen.add(edge.to);
           parent.set(edge.to, edge);
+          depth.set(edge.to, depth.get(u)! + 1);
           queue.push(edge.to);
           snapshot(edge.to, edge, queue, `发现 ${edge.from} → ${edge.to}，加入队尾。`);
-          if (edge.to === 'T') break;
+          if (edge.to === 'T') targetDepth = depth.get(edge.to)!;
         }
       }
     } else {
