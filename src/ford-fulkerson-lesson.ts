@@ -2,7 +2,6 @@ import { FLOW_EDGES, FlowGraph } from './flow-graph';
 
 type Arc = { from: string; to: string; cap: number; index: number; reverse: boolean };
 type Strategy = 'dfs' | 'bfs';
-const nodes = ['S', 'A', 'B', 'C', 'D', 'T'];
 const positions: Record<string, [number, number]> = {
   S: [70, 180], A: [230, 80], B: [230, 280],
   C: [420, 80], D: [420, 280], T: [575, 180],
