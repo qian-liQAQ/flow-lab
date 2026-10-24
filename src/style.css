@@ -329,3 +329,45 @@ button { font: inherit; cursor: pointer; }
   fill: #fbbf24;
   font-size: 15px;
 }
+
+/* 第六节：单边实验，左右并列展示原边与两个残量方向。 */
+.residual-single-workspace {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: stretch;
+}
+.residual-single-panel {
+  min-width: 0;
+}
+.residual-single-panel h2 {
+  margin-top: 0;
+}
+.residual-single-panel svg {
+  width: 100%;
+  max-width: 420px;
+  display: block;
+  margin: 0 auto;
+}
+.residual-node {
+  fill: #1e293b;
+  stroke: #38bdf8;
+  stroke-width: 2;
+}
+.residual-slider-label {
+  display: block;
+  margin: 12px 0 20px;
+  font-weight: 600;
+}
+.residual-slider-label input {
+  display: block;
+  width: 100%;
+  margin-top: 16px;
+  accent-color: #38bdf8;
+}
+.residual-disabled {
+  opacity: .12;
+}
+@media (max-width: 760px) {
+  .residual-single-workspace {
+    grid-template-columns: 1fr;
+  }
+}
