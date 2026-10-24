@@ -311,6 +311,10 @@ export function showDinicIntroLesson(app: HTMLDivElement, back: () => void) {
   });
   hintButton.addEventListener('click', () => {
     if (!levels || blocking || done) return;
+    if (route.length) {
+      message.textContent = '提示从 S 出发的一条完整路径。请先撤回已选边，再查看提示。';
+      return;
+    }
     const full = findLayerPath();
     if (!full) {
       message.textContent = '分层图已经没有可增广的完整路径，点击「检查是否形成阻塞流」。';
