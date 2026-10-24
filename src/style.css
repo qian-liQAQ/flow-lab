@@ -1,23 +1,74 @@
-main{
-  min-height:100vh;
+* { box-sizing: border-box; }
 
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  align-items:center;
-}
 body {
   margin: 0;
-  background-color: #111827;
-  color: white;
+  background: #0b1220;
+  color: #f8fafc;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
 }
-button {
-  padding: 12px 24px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  width: 200px;
-  padding: 20px;
-  margin: 30px;
 
+button { font: inherit; cursor: pointer; }
+
+.screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 32px 20px;
 }
+
+.welcome { text-align: center; }
+.eyebrow, .lesson-meta {
+  color: #38bdf8;
+  letter-spacing: 0.14em;
+  font-size: 12px;
+  font-weight: 700;
+}
+.welcome h1 {
+  margin: 18px 0 8px;
+  font-size: clamp(56px, 10vw, 96px);
+  letter-spacing: -0.055em;
+}
+.welcome p {
+  margin: 0 0 32px;
+  color: #94a3b8;
+  font-size: 20px;
+}
+
+.primary-button, .secondary-button {
+  border-radius: 12px;
+  padding: 14px 24px;
+  border: 1px solid transparent;
+  transition: background 0.2s, transform 0.2s;
+}
+.primary-button { background: #38bdf8; color: #082f49; font-weight: 700; }
+.primary-button:hover:not(:disabled) { background: #7dd3fc; transform: translateY(-2px); }
+.primary-button:disabled { opacity: 0.45; cursor: not-allowed; }
+.secondary-button { background: #1e293b; color: #e2e8f0; border-color: #334155; }
+.secondary-button:hover { background: #334155; }
+
+.lesson-content { width: min(100%, 840px); }
+.text-button {
+  background: none;
+  color: #94a3b8;
+  border: 0;
+  padding: 8px 0;
+  margin-bottom: 38px;
+}
+.text-button:hover { color: #f8fafc; }
+.lesson-meta { letter-spacing: 0.08em; }
+.lesson h1 { font-size: clamp(28px, 5vw, 44px); margin: 18px 0; }
+.question { color: #cbd5e1; line-height: 1.8; font-size: 17px; }
+.graph-panel {
+  margin: 32px 0 24px;
+  background: #111c2e;
+  border: 1px solid #273449;
+  border-radius: 20px;
+  overflow: hidden;
+}
+.flow-graph { width: 100%; height: auto; display: block; }
+.node-label { fill: #f8fafc; font: 700 24px system-ui, sans-serif; }
+.edge-label { fill: #e2e8f0; font: 17px system-ui, sans-serif; }
+.lesson-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+.feedback { min-height: 3em; margin-top: 24px; color: #7dd3fc; line-height: 1.7; }
