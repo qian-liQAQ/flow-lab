@@ -124,7 +124,6 @@ export function showFordFulkersonLesson(app: HTMLDivElement, back: () => void) {
   let view: 'original' | 'residual' = 'residual';
   let pending: Arc[] | null = null;
   let rounds = 0;
-  let manual = 0;
   let completed = false;
   let codeTab: Strategy = 'dfs';
 
@@ -133,7 +132,7 @@ export function showFordFulkersonLesson(app: HTMLDivElement, back: () => void) {
       <button id="ff-back" class="text-button">← 返回第七节</button>
       <div class="lesson-meta">第三章 · 最大流算法 / 08</div>
       <h1>能否让计算机反复寻找增广路？</h1>
-      <p class="question">每次只需要寻找一条增广路、计算瓶颈并更新残量网络。尝试手动执行两轮，再让算法继续运行。</p>
+      <p class="question">每次只需要寻找一条增广路、计算瓶颈并更新残量网络。尝试反复寻找增广路并执行增广，直到残量网络中再也找不到路径。</p>
       <div class="graph-workspace ff-workspace">
         <section class="graph-panel ff-graph">
           <div class="ff-graph-header"><strong id="ff-graph-title">残量网络</strong><button id="ff-toggle" class="secondary-button">切换到原网络</button></div>
@@ -151,7 +150,6 @@ export function showFordFulkersonLesson(app: HTMLDivElement, back: () => void) {
           <div class="ff-console-buttons">
             <button id="ff-find" class="primary-button">寻找增广路</button>
             <button id="ff-apply" class="primary-button" disabled>执行本次增广</button>
-            <button id="ff-auto" class="secondary-button" hidden>自动运行至结束</button>
             <button id="ff-reset" class="secondary-button">重置并比较</button>
           </div>
           <p class="graph-keyboard-tip">切换 DFS/BFS 将重置网络，便于公平比较两种寻路策略。</p>
@@ -189,7 +187,6 @@ export function showFordFulkersonLesson(app: HTMLDivElement, back: () => void) {
   const message = get<HTMLElement>('ff-message');
   const findButton = get<HTMLButtonElement>('ff-find');
   const applyButton = get<HTMLButtonElement>('ff-apply');
-  const autoButton = get<HTMLButtonElement>('ff-auto');
   const history = get<HTMLOListElement>('ff-history');
 
   function arcs(): Arc[] {
@@ -287,7 +284,6 @@ export function showFordFulkersonLesson(app: HTMLDivElement, back: () => void) {
     get<HTMLElement>('ff-bottleneck').textContent = pending ? String(amount(pending)) : '—';
     findButton.disabled = pending !== null || completed;
     applyButton.disabled = pending === null;
-    autoButton.hidden = manual < 2 || completed;
     get<HTMLElement>('ff-summary').hidden = !completed;
     get<HTMLElement>('ff-code-section').hidden = !completed;
   }
@@ -315,7 +311,6 @@ export function showFordFulkersonLesson(app: HTMLDivElement, back: () => void) {
     flows = FLOW_EDGES.map(() => 0);
     pending = null;
     rounds = 0;
-    manual = 0;
     completed = false;
     history.replaceChildren();
     message.textContent = '已从零流重新开始。先寻找一条增广路。';
@@ -330,20 +325,8 @@ export function showFordFulkersonLesson(app: HTMLDivElement, back: () => void) {
   applyButton.addEventListener('click', () => {
     if (!pending) return;
     apply();
-    manual++;
-    message.textContent = manual >= 2
-      ? '你已经手动完成两次增广。现在可以继续单步操作，也可以自动运行至结束。'
-      : '一次增广完成。请再次寻找增广路，观察为什么需要循环。';
+    message.textContent = '本次增广完成。继续寻找增广路；如果已经找不到路径，算法就会结束。';
     render();
-  });
-  autoButton.addEventListener('click', () => {
-    let guard = 0;
-    while (guard++ < 100) {
-      pending = search();
-      if (!pending) break;
-      apply();
-    }
-    finish();
   });
   get<HTMLButtonElement>('ff-reset').addEventListener('click', reset);
   get<HTMLSelectElement>('ff-strategy').addEventListener('change', event => {
